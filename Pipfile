@@ -10,6 +10,7 @@ django-simple-history = "*"
 django-qr-code = "*"
 django-autocomplete-light = "*"
 pdfkit = "*"
+django-dotenv = "*"
 
 [dev-packages]
 
