@@ -1,6 +1,6 @@
 from tempfile import TemporaryDirectory
+from typing import Literal, Iterable
 from dataclasses import dataclass
-from typing import Literal
 from pathlib import Path
 from uuid import uuid4
 import io
@@ -12,9 +12,8 @@ import pdfkit
 
 @dataclass(frozen=True)
 class PDFBlock:
-    object: str
     batch_code: str
-    instances: list
+    instances: Iterable
 
 
 @dataclass(frozen=True)
@@ -28,7 +27,11 @@ def create_pdf(context: CreatePDFContext) -> io.BytesIO:
     html = template.render({"items": context.items})
     buffer = io.BytesIO()
     options = {
-        'page-size': context.page_size
+        'page-size': context.page_size,
+        'margin-top': '0',
+        'margin-right': '0',
+        'margin-bottom': '0',
+        'margin-left': '0'
     }
     with TemporaryDirectory() as dir_:
         file_path = Path(dir_, f"{uuid4()}.pdf")

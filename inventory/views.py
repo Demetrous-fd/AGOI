@@ -1,6 +1,7 @@
 from functools import reduce
 from operator import or_
 
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.db.models import Q
 from dal import autocomplete
@@ -9,6 +10,12 @@ from . import models
 
 
 # Create your views here.
+
+@login_required
+def search(request):
+    return render(request, "inventory/search.html")
+
+
 def _get_queryset_for_autocomplete(request, query, model, fields: list[str]):
     if not request.user.is_authenticated:
         return model.objects.none()
@@ -55,3 +62,11 @@ class OwnerAutocomplete(autocomplete.Select2QuerySetView):
 class ObjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         return _get_queryset_for_autocomplete(self.request, self.q, models.Object, ["name"])
+
+
+class InstanceAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        return _get_queryset_for_autocomplete(
+            self.request, self.q, models.Instance,
+            ["object__name", "id", "batch_code__code"]
+        )

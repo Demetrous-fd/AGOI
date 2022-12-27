@@ -4,9 +4,7 @@ from django import forms
 from . import models
 
 
-class InstanceAddBulkForm(forms.ModelForm):
-    count = forms.IntegerField(min_value=1, initial=1, label="Количество")
-
+class InstanceForm(forms.ModelForm):
     class Meta:
         model = models.Instance
         fields = "__all__"
@@ -17,3 +15,7 @@ class InstanceAddBulkForm(forms.ModelForm):
             "owner": autocomplete.ModelSelect2(url='autocomplete-owner'),
             "object": autocomplete.ModelSelect2(url='autocomplete-object'),
         }
+
+
+class InstanceAddBulkForm(InstanceForm):
+    count = forms.IntegerField(min_value=1, initial=1, label="Количество")

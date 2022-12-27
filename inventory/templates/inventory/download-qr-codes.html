@@ -1,6 +1,7 @@
 {% load qr_code %}
 <html>
 <head>
+    <meta charset="UTF-8">
     <style>
         main {
             display: flex;
@@ -11,9 +12,6 @@
             width: 100%;
             display: flex;
             flex-wrap: wrap;
-            border-radius: 10px;
-            border: #999999 solid 1px;
-            margin: 5px;
             justify-content: center;
         }
         .container .title {
@@ -25,7 +23,7 @@
             border: black dashed 2px;
             border-radius: 10px;
             margin: 5px;
-            height: 128px;
+            height: 3cm;
         }
         hr {
             width: 100%;
@@ -36,10 +34,10 @@
     <main>
         {% for item in items %}
         <div class="container">
-            <h1 class="title">{{ item.batch_code }}:{{ item.object }}</h1>
+            <h1 class="title">{{ item.batch_code }}</h1>
             <hr>
             {% for instance in item.instances %}
-            {% qr_from_text instance.pk image_format="png" error_correction="L" size="S" %}
+                {% qr_from_text instance.pk image_format="png" error_correction="L" size="S" %}
             {% endfor %}
         </div>
         {% endfor %}

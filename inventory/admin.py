@@ -1,5 +1,8 @@
+from operator import attrgetter
 from datetime import datetime
+from itertools import groupby
 
+from django.db.models import QuerySet
 from simple_history.admin import SimpleHistoryAdmin
 from django.forms.models import model_to_dict
 from django.http.response import FileResponse
@@ -20,29 +23,29 @@ class BatchCodeAdmin(admin.ModelAdmin):
     list_display = ("code", "show_related_instances_in_admin_view")
     actions = ["download_qr_codes"]
 
-    @admin.action(description="Скачать QR-коды оборудования")
+    @admin.action(description="Скачать QR-коды оборудования из партии")
     def download_qr_codes(self, request, queryset):
         data = []
         for item in queryset:
             instances = models.Instance.objects.filter(batch_code__pk=item.pk)
-            object_name = instances.first().object.name
             data.append(
                 pdf.PDFBlock(
-                    object=object_name,
                     batch_code=item.code,
                     instances=instances.all()
                 )
             )
-        context = pdf.CreatePDFContext(items=data, page_size="A5")
-        return FileResponse(pdf.create_pdf(context), as_attachment=False, filename="test.pdf")
+        context = pdf.CreatePDFContext(items=data, page_size="A6")
+        return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
 
 class InstanceAdmin(SimpleHistoryAdmin):
+    form = forms.InstanceForm
     list_display = ("__str__", "owner", "location", "state", "batch_code", "created_at", "qr_preview")
     list_filter = ("object_id", "state", "batch_code")
     history_list_display = ("state", "location", "owner")
     search_fields = ("pk", "batch_code__code")
-    readonly_fields = ("object", "batch_code")
+    readonly_fields = ("object", "batch_code", "qr_preview")
+    actions = ["download_qr_codes"]
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -52,7 +55,7 @@ class InstanceAdmin(SimpleHistoryAdmin):
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         default = {}
-        if obj is None:
+        if obj is None:  # On create view
             default["form"] = forms.InstanceAddBulkForm
         default.update(kwargs)
         return super().get_form(request, obj, change, **default)
@@ -76,6 +79,20 @@ class InstanceAdmin(SimpleHistoryAdmin):
             for _ in range(count):
                 new_obj = models.Instance(**obj)
                 super().save_model(request, new_obj, form, change)
+
+    @admin.action(description="Скачать QR-коды оборудования")
+    def download_qr_codes(self, request, queryset: QuerySet):
+        queryset = queryset.order_by("batch_code")
+        data = []
+        for key, group_items in groupby(queryset, key=attrgetter("batch_code")):
+            data.append(
+                pdf.PDFBlock(
+                    batch_code=key,
+                    instances=tuple(group_items)
+                )
+            )
+        context = pdf.CreatePDFContext(items=data, page_size="A6")
+        return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
 
 admin.site.register(models.Object, ObjectAdmin)
