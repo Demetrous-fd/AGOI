@@ -31,13 +31,15 @@ RUN --mount=type=cache,target=/var/cache/apt \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
     dpkg -i wkhtmltopdf.deb
 
+RUN rm -rf /var/lib/apt/lists/*
+
 RUN set -ex && \
     pip install --upgrade pip && \
     pip install pipenv && \
     rm -rf /root/.cache/
 
-RUN pipenv requirements > requirements.txt && \
-    pip install -r requirements.txt
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install
+ENV PATH="/.venv/bin:$PATH"
 
 # Expose port 8000
 EXPOSE 8000
