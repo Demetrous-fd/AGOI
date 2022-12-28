@@ -29,4 +29,4 @@ EXPOSE 8000
 
 RUN pipenv shell
 # Use gunicorn on port 8000
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "django_project.wsgi"]
+CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "AGOI.wsgi"]
