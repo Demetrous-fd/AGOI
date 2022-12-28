@@ -9,8 +9,8 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir -p /app
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt /tmp/requirements.txt
+# Copy local project
+COPY . /app/
 
 RUN set -ex && \
     apt-get install wkhtmltopdf \
@@ -19,8 +19,6 @@ RUN set -ex && \
     pipenv install && \
     rm -rf /root/.cache/
 
-# Copy local project
-COPY . /app/
 
 # Expose port 8000
 EXPOSE 8000
