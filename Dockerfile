@@ -31,7 +31,7 @@ RUN set -ex && \
     pip install pipenv && \
     rm -rf /root/.cache/
 
-RUN pipenv lock -r > requirements.txt && \
+RUN pipenv requirements > requirements.txt && \
     pip install -r requirements.txt
 
 # Expose port 8000
