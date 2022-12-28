@@ -16,7 +16,7 @@ WORKDIR /app
 COPY requirements.txt /tmp/requirements.txt
 
 RUN set -ex && \
-    apt-get install wkhtmltopdf
+    apt-get install wkhtmltopdf \
     pip install --upgrade pip && \
     pip install pipenv && \
     pipenv install && \
