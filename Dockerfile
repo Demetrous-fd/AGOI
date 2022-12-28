@@ -29,13 +29,13 @@ RUN set -ex && \
     dpkg -i wkhtmltopdf.deb && \
     pip install --upgrade pip && \
     pip install pipenv && \
-    pipenv install && \
     rm -rf /root/.cache/
 
+RUN pipenv lock -r > requirements.txt && \
+    pip install -r requirements.txt
 
 # Expose port 8000
 EXPOSE 8000
 
-RUN pipenv shell
 # Use gunicorn on port 8000
 CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "AGOI.wsgi"]
