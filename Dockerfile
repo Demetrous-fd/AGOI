@@ -12,7 +12,8 @@ WORKDIR /app
 # Copy local project
 COPY . /app/
 
-RUN --mount=type=cache,target=/var/cache/apt \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -ex && \
     apt-get update \
     && apt-get install -y \
@@ -26,8 +27,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
         libjpeg62-turbo \
         fontconfig
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    set -ex && \
+RUN set -ex && \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
     dpkg -i wkhtmltopdf.deb
 
