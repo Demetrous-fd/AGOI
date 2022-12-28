@@ -13,7 +13,8 @@ WORKDIR /app
 COPY . /app/
 
 RUN set -ex && \
-    apt-get update && apt-get install wkhtmltopdf -y && \
+    wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
+    dpkg -i wkhtmltopdf.deb && \
     pip install --upgrade pip && \
     pip install pipenv && \
     pipenv install && \
