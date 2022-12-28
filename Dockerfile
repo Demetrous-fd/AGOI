@@ -13,7 +13,7 @@ WORKDIR /app
 COPY . /app/
 
 RUN set -ex && \
-    apt-get install wkhtmltopdf \
+    apt-get update && apt-get install wkhtmltopdf -y && \
     pip install --upgrade pip && \
     pip install pipenv && \
     pipenv install && \
