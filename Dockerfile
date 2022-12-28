@@ -12,8 +12,15 @@ WORKDIR /app
 # Copy local project
 COPY . /app/
 
+RUN apt-get update \
+    && apt-get install -y \
+        wget \
+        libxrender1 \
+        libfontconfig \
+        libxtst6 \
+        xz-utils
+
 RUN set -ex && \
-    apt-get update && apt-get install wget -y && \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
     dpkg -i wkhtmltopdf.deb && \
     pip install --upgrade pip && \
