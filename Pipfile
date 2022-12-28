@@ -12,6 +12,7 @@ django-autocomplete-light = "*"
 pdfkit = "*"
 django-dotenv = "*"
 gunicorn = "*"
+whitenoise = "*"
 
 [dev-packages]
 
