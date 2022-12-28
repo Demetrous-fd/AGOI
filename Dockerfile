@@ -38,8 +38,7 @@ RUN set -ex && \
     pip install pipenv && \
     rm -rf /root/.cache/
 
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install
-ENV PATH="/.venv/bin:$PATH"
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --system
 
 # Expose port 8000
 EXPOSE 8000
