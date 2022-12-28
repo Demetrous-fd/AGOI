@@ -18,7 +18,11 @@ RUN apt-get update \
         libxrender1 \
         libfontconfig \
         libxtst6 \
-        xz-utils
+        xz-utils \
+        xfonts-base \
+        xfonts-75dpi \
+        libjpeg62-turbo \
+        fontconfig
 
 RUN set -ex && \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
