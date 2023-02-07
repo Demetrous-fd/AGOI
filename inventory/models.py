@@ -4,6 +4,7 @@ from qr_code.templatetags.qr_code import qr_from_text
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from django.utils.html import mark_safe
+from django.conf import settings
 from django.urls import reverse
 from django.db import models
 
@@ -72,22 +73,22 @@ class Owner(models.Model):
         verbose_name_plural = "Сотрудники"
 
 
-class BatchCode(models.Model):
-    code = models.CharField(max_length=128, unique=True, verbose_name="Код")
+class ContractNumber(models.Model):
+    number = models.CharField(max_length=128, unique=True, verbose_name="Номер контракта")
 
     def __str__(self):
-        return self.code
+        return self.number
 
     def show_related_instances_in_admin_view(self):
         url = reverse(
             f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?batch_code__id__exact={self.pk}'>Связанное оборудование</a>")
+            f"<a href='{url}?contract_number__id__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
     class Meta:
-        verbose_name = "Код партии"
-        verbose_name_plural = "Коды партий"
+        verbose_name = "Номер контракта"
+        verbose_name_plural = "Номера контрактов"
 
 
 class State(models.Model):
@@ -101,22 +102,41 @@ class State(models.Model):
         verbose_name_plural = "Статусы"
 
 
-class Instance(models.Model):
+class BaseInstance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
     owner = models.ForeignKey(Owner, default=1, on_delete=models.SET_DEFAULT, verbose_name="Владелец")
     state = models.ForeignKey(State, default=1, on_delete=models.SET_DEFAULT, verbose_name="Статус")
     location = models.ForeignKey(Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
-    batch_code = models.ForeignKey(BatchCode, on_delete=models.CASCADE, verbose_name="Код партии")
+    contract_number = models.ForeignKey(ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
-    history = HistoricalRecords()
+    history = HistoricalRecords(inherit=True)
 
     def __str__(self):
         return f"{self.object.name}: {self.id}"
 
     def qr_preview(self):
+        if settings.USE_QR_FULL_URI and settings.APP_DOMAIN:
+            path = reverse(
+                f"admin:{self._meta.app_label}_{Instance._meta.model_name}_change",
+                kwargs={"object_id": self.pk}
+            )
+            url = f"{settings.APP_DOMAIN}" + (f":{settings.APP_PORT}" if settings.APP_PORT else "")
+            uri = f"{url}{path}"
+            return qr_from_text(uri, size="T")
         return qr_from_text(f"{self.pk}", size="T")
 
     class Meta:
+        abstract = True
+
+
+class Instance(BaseInstance):
+    class Meta:
         verbose_name = "Оборудование"
         verbose_name_plural = "Оборудование"
+
+
+class Consumable(BaseInstance):
+    class Meta:
+        verbose_name = "Расходник"
+        verbose_name_plural = "Расходники"

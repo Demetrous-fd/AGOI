@@ -12,7 +12,7 @@ import pdfkit
 
 @dataclass(frozen=True)
 class PDFBlock:
-    batch_code: str
+    contract_number: str
     instances: Iterable
 
 

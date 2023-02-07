@@ -34,7 +34,7 @@
     <main>
         {% for item in items %}
         <div class="container">
-            <h1 class="title">{{ item.batch_code }}</h1>
+            <h1 class="title">{{ item.contract_number }}</h1>
             <hr>
             {% for instance in item.instances %}
                 {% qr_from_text instance.pk image_format="png" error_correction="L" size="S" %}

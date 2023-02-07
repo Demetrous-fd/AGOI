@@ -18,7 +18,7 @@ import dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv.read_dotenv(BASE_DIR / '.env', override=True)
+dotenv.read_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -27,7 +27,7 @@ dotenv.read_dotenv(BASE_DIR / '.env', override=True)
 SECRET_KEY = getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if getenv("DEBUG", "").lower() != "true" else True
 
 ALLOWED_HOSTS = []
 
@@ -139,3 +139,9 @@ LOGIN_URL = 'admin/login'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+USE_QR_FULL_URI = False if getenv("USE_QR_FULL_URI", "").lower() != "true" else True
+APP_DOMAIN = getenv("APP_DOMAIN", None)
+_APP_PORT = getenv("APP_PORT", "")
+APP_PORT = _APP_PORT if _APP_PORT not in ("80", "443", "") \
+                 and _APP_PORT.isdigit() else ""

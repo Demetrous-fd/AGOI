@@ -10,7 +10,7 @@ class InstanceForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             "location": autocomplete.ModelSelect2(url='autocomplete-location'),
-            "batch_code": autocomplete.ModelSelect2(url='autocomplete-batch-code'),
+            "contract_number": autocomplete.ModelSelect2(url='autocomplete-contract-number'),
             "state": autocomplete.ModelSelect2(url='autocomplete-state'),
             "owner": autocomplete.ModelSelect2(url='autocomplete-owner'),
             "object": autocomplete.ModelSelect2(url='autocomplete-object'),
@@ -18,4 +18,21 @@ class InstanceForm(forms.ModelForm):
 
 
 class InstanceAddBulkForm(InstanceForm):
+    count = forms.IntegerField(min_value=1, initial=1, label="Количество")
+
+
+class ConsumableForm(forms.ModelForm):
+    class Meta:
+        model = models.Consumable
+        fields = "__all__"
+        widgets = {
+            "location": autocomplete.ModelSelect2(url='autocomplete-location'),
+            "contract_number": autocomplete.ModelSelect2(url='autocomplete-contract-number'),
+            "state": autocomplete.ModelSelect2(url='autocomplete-state'),
+            "owner": autocomplete.ModelSelect2(url='autocomplete-owner'),
+            "object": autocomplete.ModelSelect2(url='autocomplete-object'),
+        }
+
+
+class ConsumableAddBulkForm(ConsumableForm):
     count = forms.IntegerField(min_value=1, initial=1, label="Количество")

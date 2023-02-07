@@ -28,12 +28,12 @@ def _get_queryset_for_autocomplete(request, query, model, fields: list[str]):
     return qs
 
 
-class BatchCodeAutocomplete(autocomplete.Select2QuerySetView):
-    create_field = "code"
+class ContractNumberAutocomplete(autocomplete.Select2QuerySetView):
+    create_field = "number"
     validate_create = True
 
     def get_queryset(self):
-        return _get_queryset_for_autocomplete(self.request, self.q, models.BatchCode, ["code"])
+        return _get_queryset_for_autocomplete(self.request, self.q, models.ContractNumber, ["number"])
 
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
@@ -68,5 +68,5 @@ class InstanceAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         return _get_queryset_for_autocomplete(
             self.request, self.q, models.Instance,
-            ["object__name", "id", "batch_code__code"]
+            ["object__name", "id", "contract_number__number"]
         )
