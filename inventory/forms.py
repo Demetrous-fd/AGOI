@@ -28,11 +28,22 @@ class ConsumableForm(forms.ModelForm):
         widgets = {
             "location": autocomplete.ModelSelect2(url='autocomplete-location'),
             "contract_number": autocomplete.ModelSelect2(url='autocomplete-contract-number'),
-            "state": autocomplete.ModelSelect2(url='autocomplete-state'),
-            "owner": autocomplete.ModelSelect2(url='autocomplete-owner'),
             "object": autocomplete.ModelSelect2(url='autocomplete-object'),
         }
 
 
-class ConsumableAddBulkForm(ConsumableForm):
-    count = forms.IntegerField(min_value=1, initial=1, label="Количество")
+class ConsumableAdd(ConsumableForm):
+    initial_quantity = forms.IntegerField(min_value=1, initial=1, label="Изначальное количество")
+
+    class Meta:
+        exclude = ("balance", )
+        widgets = {
+            "location": autocomplete.ModelSelect2(url='autocomplete-location'),
+            "contract_number": autocomplete.ModelSelect2(url='autocomplete-contract-number'),
+            "object": autocomplete.ModelSelect2(url='autocomplete-object'),
+        }
+
+
+class ConsumableWriteOff(forms.Form):
+    count = forms.IntegerField(min_value=1, initial=1, label="Количество списываемых расходников")
+    comment = forms.CharField(required=False, widget=forms.Textarea, label="Комментарий")

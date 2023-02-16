@@ -37,12 +37,15 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'dal',
     'dal_select2',
-    'django.contrib.admin',
+    'AGOI.apps.MyAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'more_admin_filters',
+    'admin_auto_filters',
+    'rangefilter',
     'simple_history',
     'qr_code',
     "inventory",
@@ -142,6 +145,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_QR_FULL_URI = False if getenv("USE_QR_FULL_URI", "").lower() != "true" else True
 APP_DOMAIN = getenv("APP_DOMAIN", None)
-_APP_PORT = getenv("APP_PORT", "")
-APP_PORT = _APP_PORT if _APP_PORT not in ("80", "443", "") \
-                 and _APP_PORT.isdigit() else ""
+_APP_EXTERNAL_PORT = getenv("APP_EXTERNAL_PORT", "")
+APP_EXTERNAL_PORT = _APP_EXTERNAL_PORT if _APP_EXTERNAL_PORT not in ("80", "443", "") \
+                 and _APP_EXTERNAL_PORT.isdigit() else ""

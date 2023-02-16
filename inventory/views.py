@@ -1,7 +1,9 @@
 from functools import reduce
 from operator import or_
 
+from simple_history.signals import pre_create_historical_record
 from django.contrib.auth.decorators import login_required
+from django.dispatch import receiver
 from django.shortcuts import render
 from django.db.models import Q
 from dal import autocomplete
@@ -14,6 +16,17 @@ from . import models
 @login_required
 def search(request):
     return render(request, "inventory/search.html")
+
+
+@receiver(pre_create_historical_record)
+def pre_create_historical_record_callback(sender, **kwargs):
+    history_instance = kwargs['history_instance']
+    instance = kwargs["instance"]
+    print(history_instance, instance)
+    if hasattr(instance, "written_off"):
+        history_instance.written_off = instance.written_off
+    else:
+        history_instance.written_off = 0
 
 
 def _get_queryset_for_autocomplete(request, query, model, fields: list[str]):

@@ -1,29 +1,42 @@
 from operator import attrgetter
-from datetime import datetime
 from itertools import groupby
+from datetime import datetime
 
-from django.contrib.admin.utils import quote
-from django.urls import reverse
+from django.http.response import FileResponse, HttpResponseRedirect
+from django.template.response import TemplateResponse
 from simple_history.admin import SimpleHistoryAdmin
+from rangefilter.filters import DateRangeFilter
+from django.shortcuts import get_object_or_404
 from django.forms.models import model_to_dict
-from django.http.response import FileResponse
+from django.contrib.admin.utils import quote
 from django.contrib import admin, messages
 from django.utils.html import format_html
-from django.db.models import QuerySet
+from django.db.models import QuerySet, F
+from django.urls import reverse, path
 
+
+from .filters import ConsumableBalanceFilter, MultiSelectFilter, ConstructNumberFilter, ObjectFilter
+from .history import update_with_history
 from . import models, forms, pdf
+from AGOI.admin import site
 
 
 class ObjectAdmin(admin.ModelAdmin):
-    list_display = ("name", "image_preview", "id", "show_instances_in_admin_view")
+    list_display = ("name", "image_preview", "id", "show_instances_in_admin_view", "show_consumable_in_admin_view")
     readonly_fields = ("image_preview",)
+    search_fields = ("name",)
     prepopulated_fields = {
         "slug": ("name",)
     }
 
 
 class ContractNumberAdmin(admin.ModelAdmin):
-    list_display = ("number", "show_related_instances_in_admin_view")
+    list_display = (
+        "number",
+        "show_related_instances_in_admin_view",
+        "show_related_consumable_in_admin_view"
+    )
+    search_fields = ("number",)
     actions = ["download_qr_codes"]
 
     @admin.action(description="Скачать QR-коды оборудования из партии")
@@ -41,7 +54,34 @@ class ContractNumberAdmin(admin.ModelAdmin):
         return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
 
-class MixinSaveQrCodes:
+class InstanceAdmin(SimpleHistoryAdmin):
+    model = models.Instance
+    form = forms.InstanceForm
+    list_display = ("__str__", "owner", "location", "contract_number", "state", "created_at", "qr_preview")
+    list_filter = (
+        ("state", MultiSelectFilter),
+        ("created_at", DateRangeFilter),
+        ObjectFilter,
+        ConstructNumberFilter,
+    )
+    history_list_display = ("location", "owner")
+    search_fields = ("pk", "contract_number__number")
+    readonly_fields = ("object", "contract_number", "qr_preview")
+    actions = ("download_qr_codes",)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields
+        else:
+            return []
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        default = {}
+        if obj is None:  # On create view
+            default["form"] = forms.InstanceAddBulkForm
+        default.update(kwargs)
+        return super().get_form(request, obj, change, **default)
+
     @admin.action(description="Скачать QR-коды оборудования")
     def download_qr_codes(self, request, queryset: QuerySet):
         queryset = queryset.order_by("contract_number")
@@ -56,9 +96,6 @@ class MixinSaveQrCodes:
         context = pdf.CreatePDFContext(items=data, page_size="A4")
         return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
-
-class MixinBulkSave:
-    """Для работы требуется статический атрибут model в модели Admin"""
     def save_model(self, request, obj, form, change):
         if change:
             super().save_model(request, obj, form, change)
@@ -97,39 +134,18 @@ class MixinBulkSave:
             new_obj.save()
 
 
-class InstanceAdmin(SimpleHistoryAdmin, MixinSaveQrCodes, MixinBulkSave):
-    model = models.Instance
-    form = forms.InstanceForm
-    list_display = ("__str__", "owner", "location", "state", "contract_number", "created_at", "qr_preview")
-    list_filter = ("object_id", "state", "contract_number")
-    history_list_display = ("state", "location", "owner")
-    search_fields = ("pk", "contract_number__number")
-    readonly_fields = ("object", "contract_number", "qr_preview")
-    actions = ("download_qr_codes",)
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return self.readonly_fields
-        else:
-            return []
-
-    def get_form(self, request, obj=None, change=False, **kwargs):
-        default = {}
-        if obj is None:  # On create view
-            default["form"] = forms.InstanceAddBulkForm
-        default.update(kwargs)
-        return super().get_form(request, obj, change, **default)
-
-
-class ConsumableAdmin(MixinSaveQrCodes, MixinBulkSave, SimpleHistoryAdmin):
-    model = models.Consumable
+class ConsumableAdmin(SimpleHistoryAdmin):
     form = forms.ConsumableForm
-    list_display = ("__str__", "owner", "location", "state", "contract_number", "created_at", "qr_preview")
-    list_filter = ("object_id", "state", "contract_number")
-    history_list_display = ("state", "location", "owner")
+    list_display = ("__str__", "show_balance", "location", "contract_number", "created_at", "account_actions")
+    list_filter = (
+        ConsumableBalanceFilter,
+        ("created_at", DateRangeFilter),
+        ObjectFilter,
+        ConstructNumberFilter,
+    )
+    history_list_display = ("location", "written_off", "balance", "initial_quantity")
     search_fields = ("pk", "contract_number__number")
-    readonly_fields = ("object", "contract_number", "state", "qr_preview")
-    actions = ("download_qr_codes",)
+    readonly_fields = ("object", "contract_number", "show_balance", "initial_quantity", "balance", "account_actions")
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -140,16 +156,82 @@ class ConsumableAdmin(MixinSaveQrCodes, MixinBulkSave, SimpleHistoryAdmin):
     def get_form(self, request, obj=None, change=False, **kwargs):
         default = {}
         if obj is None:  # On create view
-            default["form"] = forms.ConsumableAddBulkForm
+            default["form"] = forms.ConsumableAdd
         default.update(kwargs)
         return super().get_form(request, obj, change, **default)
 
+    def save_model(self, request, obj: models.Consumable, form, change):
+        if change:
+            super().save_model(request, obj, form, change)
+            return
 
-admin.site.register(models.Object, ObjectAdmin)
-admin.site.register(models.Instance, InstanceAdmin)
-admin.site.register(models.Consumable, ConsumableAdmin)
-admin.site.register(models.ContractNumber, ContractNumberAdmin)
-admin.site.register(models.State)
-admin.site.register(models.Address)
-admin.site.register(models.Location)
-admin.site.register(models.Owner)
+        obj.balance = obj.initial_quantity
+        super().save_model(request, obj, form, change)
+
+    def account_actions(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Выдать расходники</a>&nbsp;',
+            reverse('admin:consumable-write-off', args=[obj.pk])
+        )
+    account_actions.short_description = 'Действия'
+    account_actions.allow_tags = True
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(
+                'consumable/<str:pk>/write-off',
+                self.write_off_consumable_view,
+                name="consumable-write-off"
+            ),
+        ]
+        return my_urls + urls
+
+    def write_off_consumable_view(self, request, pk: str):
+        obj = get_object_or_404(models.Consumable, pk=pk)
+
+        if request.method == 'POST':
+            form = forms.ConsumableWriteOff(request.POST)
+            if form.is_valid():
+                written_off = form.cleaned_data["count"]
+                comment = form.cleaned_data["comment"]
+                if obj.balance - written_off >= 0:
+                    queryset = models.Consumable.objects.filter(pk=pk)
+                    update_data = {"balance": F("balance") - written_off}
+                    history_data = {"written_off": written_off}
+                    update_with_history(
+                        queryset, request.user, update_data, history_data, history_change_reason=comment
+                    )
+                    self.message_user(request, f'Расходники в количестве: {written_off} выданы')
+                else:
+                    self.message_user(
+                        request, 'Невозможно выдать больше расходников чем имеется на балансе', level="Warning"
+                    )
+                url = reverse(
+                    f"admin:inventory_{models.Consumable._meta.model_name}_changelist"
+                )
+                return HttpResponseRedirect(url)
+
+        context = self.admin_site.each_context(request)
+        if request.method != "POST":
+            form = forms.ConsumableWriteOff()
+
+        context['opts'] = self.model._meta
+        context['form'] = form
+        context['title'] = "Списание расходников"
+        context['balance'] = obj.balance
+        return TemplateResponse(
+            request,
+            'admin/action/write_off.html',
+            context,
+        )
+
+
+site.register(models.Object, ObjectAdmin)
+site.register(models.Instance, InstanceAdmin)
+site.register(models.Consumable, ConsumableAdmin)
+site.register(models.ContractNumber, ContractNumberAdmin)
+site.register(models.State)
+site.register(models.Address)
+site.register(models.Location)
+site.register(models.Owner)

@@ -7,10 +7,24 @@
     }
   },
   {
+    "model": "inventory.Location",
+    "pk": 2,
+    "fields": {
+       "name": "На складе"
+    }
+  },
+  {
     "model": "inventory.State",
     "pk": 1,
     "fields": {
-       "name": "Не указан"
+       "name": "На учете"
+    }
+  },
+  {
+    "model": "inventory.State",
+    "pk": 2,
+    "fields": {
+       "name": "Списано"
     }
   },
   {

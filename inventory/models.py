@@ -4,6 +4,7 @@ from qr_code.templatetags.qr_code import qr_from_text
 from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User
 from django.utils.html import mark_safe
+from django.core import validators
 from django.conf import settings
 from django.urls import reverse
 from django.db import models
@@ -28,9 +29,16 @@ class Object(models.Model):
     def show_instances_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?object__id__exact={self.pk}'>Экземпляры объекта</a>"
+            f"<a href='{url}?object__id__exact={self.pk}'>Просмотр оборудования</a>"
         )
     show_instances_in_admin_view.short_description = ""
+
+    def show_consumable_in_admin_view(self):
+        url = reverse(f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
+        return mark_safe(
+            f"<a href='{url}?object__id__exact={self.pk}'>Просмотр расходников</a>"
+        )
+    show_consumable_in_admin_view.short_description = ""
 
     class Meta:
         verbose_name = "Объект"
@@ -86,6 +94,13 @@ class ContractNumber(models.Model):
             f"<a href='{url}?contract_number__id__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
+    def show_related_consumable_in_admin_view(self):
+        url = reverse(
+            f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
+        return mark_safe(
+            f"<a href='{url}?contract_number__id__exact={self.pk}'>Связанные расходники</a>")
+    show_related_consumable_in_admin_view.short_description = ""
+
     class Meta:
         verbose_name = "Номер контракта"
         verbose_name_plural = "Номера контрактов"
@@ -102,7 +117,7 @@ class State(models.Model):
         verbose_name_plural = "Статусы"
 
 
-class BaseInstance(models.Model):
+class Instance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
     owner = models.ForeignKey(Owner, default=1, on_delete=models.SET_DEFAULT, verbose_name="Владелец")
@@ -110,7 +125,10 @@ class BaseInstance(models.Model):
     location = models.ForeignKey(Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
     contract_number = models.ForeignKey(ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
-    history = HistoricalRecords(inherit=True)
+    history = HistoricalRecords(
+        history_change_reason_field=models.TextField(null=True),
+        cascade_delete_history=True
+    )
 
     def __str__(self):
         return f"{self.object.name}: {self.id}"
@@ -118,25 +136,55 @@ class BaseInstance(models.Model):
     def qr_preview(self):
         if settings.USE_QR_FULL_URI and settings.APP_DOMAIN:
             path = reverse(
-                f"admin:{self._meta.app_label}_{Instance._meta.model_name}_change",
+                f"admin:{self._meta.app_label}_{self._meta.model_name}_change",
                 kwargs={"object_id": self.pk}
             )
-            url = f"{settings.APP_DOMAIN}" + (f":{settings.APP_PORT}" if settings.APP_PORT else "")
+            url = f"{settings.APP_DOMAIN}" + (f":{settings.APP_EXTERNAL_PORT}" if settings.APP_EXTERNAL_PORT else "")
             uri = f"{url}{path}"
             return qr_from_text(uri, size="T")
         return qr_from_text(f"{self.pk}", size="T")
 
     class Meta:
-        abstract = True
-
-
-class Instance(BaseInstance):
-    class Meta:
         verbose_name = "Оборудование"
         verbose_name_plural = "Оборудование"
 
 
-class Consumable(BaseInstance):
+class ConsumableHistoryInfo(models.Model):
+    written_off = models.IntegerField(
+        validators=[validators.MinValueValidator(0)],
+        verbose_name="Количество списаных расходников"
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Consumable(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
+    location = models.ForeignKey(
+        Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
+    contract_number = models.ForeignKey(
+        ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
+    balance = models.IntegerField(
+        default=10, validators=[validators.MinValueValidator(1)], verbose_name="Остаток")
+    initial_quantity = models.IntegerField(
+        default=10, validators=[validators.MinValueValidator(1)], verbose_name="Изначальное количество")
+    history = HistoricalRecords(
+        history_change_reason_field=models.TextField(null=True, verbose_name="Комментарий"),
+        excluded_fields=("created_at", "object", "contract_number"),
+        bases=(ConsumableHistoryInfo,),
+        cascade_delete_history=True
+    )
+
+    def __str__(self):
+        return f"{self.object.name}" if hasattr(self, "object") else str(self.pk)
+
+    def show_balance(self):
+        return f"{self.balance} / {self.initial_quantity}"
+    show_balance.short_description = "Баланс"
+
     class Meta:
         verbose_name = "Расходник"
         verbose_name_plural = "Расходники"
