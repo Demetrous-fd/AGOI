@@ -42,5 +42,12 @@
        "second_name": "Не указан",
        "last_name": "."
     }
+  },
+  {
+    "model": "inventory.InventoryNumber",
+    "pk": 1,
+    "fields": {
+       "number": "Не указан"
+    }
   }
 ]

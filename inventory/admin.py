@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.http.response import FileResponse, HttpResponseRedirect
 from django.template.response import TemplateResponse
+from django.core.exceptions import PermissionDenied
 from simple_history.admin import SimpleHistoryAdmin
 from rangefilter.filters import DateRangeFilter
 from django.shortcuts import get_object_or_404
@@ -14,8 +15,13 @@ from django.utils.html import format_html
 from django.db.models import QuerySet, F
 from django.urls import reverse, path
 
-
-from .filters import ConsumableBalanceFilter, MultiSelectFilter, ConstructNumberFilter, ObjectFilter
+from .filters import (
+    ConsumableBalanceFilter,
+    MultiSelectFilter,
+    ConstructNumberFilter,
+    ObjectFilter,
+    InventoryNumberFilter
+)
 from .history import update_with_history
 from . import models, forms, pdf
 from AGOI.admin import site
@@ -29,6 +35,14 @@ class ObjectAdmin(admin.ModelAdmin):
     prepopulated_fields = {
         "slug": ("name",)
     }
+
+
+class InventoryNumberAdmin(admin.ModelAdmin):
+    list_display = (
+        "number",
+        "show_related_instances_in_admin_view"
+    )
+    search_fields = ("number",)
 
 
 class ContractNumberAdmin(admin.ModelAdmin):
@@ -58,14 +72,19 @@ class ContractNumberAdmin(admin.ModelAdmin):
 class InstanceAdmin(SimpleHistoryAdmin):
     model = models.Instance
     form = forms.InstanceForm
-    list_display = ("__str__", "owner", "location", "contract_number", "state", "created_at", "qr_preview")
+    list_display = (
+        "__str__", "inventory_number", "contract_number",
+        "state", "owner", "location",
+        "created_at", "qr_preview"
+    )
     list_filter = (
         ("state", MultiSelectFilter),
         ("created_at", DateRangeFilter),
         ObjectFilter,
         ConstructNumberFilter,
+        InventoryNumberFilter
     )
-    history_list_display = ("location", "owner")
+    history_list_display = ("inventory_number", "location", "owner")
     search_fields = ("pk", "contract_number__number")
     readonly_fields = ("object", "contract_number", "qr_preview")
     actions = ("download_qr_codes_2824", "download_qr_codes_a4")
@@ -197,8 +216,10 @@ class ConsumableAdmin(SimpleHistoryAdmin):
         return my_urls + urls
 
     def write_off_consumable_view(self, request, pk: str):
-        obj = get_object_or_404(models.Consumable, pk=pk)
+        if not request.user.has_perm("change_consumable"):
+            raise PermissionDenied
 
+        obj = get_object_or_404(models.Consumable, pk=pk)
         if request.method == 'POST':
             form = forms.ConsumableWriteOff(request.POST)
             if form.is_valid():
@@ -240,6 +261,7 @@ site.register(models.Object, ObjectAdmin)
 site.register(models.Instance, InstanceAdmin)
 site.register(models.Consumable, ConsumableAdmin)
 site.register(models.ContractNumber, ContractNumberAdmin)
+site.register(models.InventoryNumber, InventoryNumberAdmin)
 site.register(models.State)
 site.register(models.Address)
 site.register(models.Location)

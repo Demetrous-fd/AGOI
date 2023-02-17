@@ -117,13 +117,38 @@ class State(models.Model):
         verbose_name_plural = "Статусы"
 
 
+class InventoryNumber(models.Model):
+    number = models.CharField(max_length=64, verbose_name="Инвентарный номер")
+
+    def __str__(self):
+        return self.number
+
+    def show_related_instances_in_admin_view(self):
+        url = reverse(
+            f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
+        return mark_safe(
+            f"<a href='{url}?inventory_number__id__exact={self.pk}'>Связанное оборудование</a>")
+    show_related_instances_in_admin_view.short_description = ""
+
+    class Meta:
+        verbose_name = "Инвентарный номер"
+        verbose_name_plural = "Инвентарные номера"
+
+
 class Instance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
-    owner = models.ForeignKey(Owner, default=1, on_delete=models.SET_DEFAULT, verbose_name="Владелец")
-    state = models.ForeignKey(State, default=1, on_delete=models.SET_DEFAULT, verbose_name="Статус")
-    location = models.ForeignKey(Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
-    contract_number = models.ForeignKey(ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+    object = models.ForeignKey(
+        Object, on_delete=models.CASCADE, verbose_name="Объект")
+    owner = models.ForeignKey(
+        Owner, default=1, on_delete=models.SET_DEFAULT, verbose_name="Владелец")
+    state = models.ForeignKey(
+        State, default=1, on_delete=models.SET_DEFAULT, verbose_name="Статус")
+    inventory_number = models.ForeignKey(
+        InventoryNumber, default=1, on_delete=models.SET_DEFAULT, verbose_name="Инвентарный номер")
+    location = models.ForeignKey(
+        Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
+    contract_number = models.ForeignKey(
+        ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     history = HistoricalRecords(
         history_change_reason_field=models.TextField(null=True),
@@ -131,7 +156,7 @@ class Instance(models.Model):
     )
 
     def __str__(self):
-        return f"{self.object.name}: {self.id}"
+        return f"{self.object.name}: {self.pk}"
 
     def get_qr_url(self):
         if settings.USE_QR_FULL_URI and settings.APP_DOMAIN:

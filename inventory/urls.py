@@ -5,8 +5,11 @@ from . import views
 
 urlpatterns = [
     path("", views.search),
+    path("test", views.test_qr),
     path("autocomplete/contract-number", login_required(views.ContractNumberAutocomplete.as_view()),
          name="autocomplete-contract-number"),
+    path("autocomplete/inventory-number", login_required(views.InventoryNumberAutocomplete.as_view()),
+         name="autocomplete-inventory-number"),
     path("autocomplete/location", login_required(views.LocationAutocomplete.as_view()),
          name="autocomplete-location"),
     path("autocomplete/state", login_required(views.StateAutocomplete.as_view()),

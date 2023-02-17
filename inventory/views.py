@@ -11,6 +11,12 @@ from dal import autocomplete
 from . import models
 
 
+def test_qr(request):
+    from .pdf import PDFBlock
+    objs = models.Instance.objects.filter(~Q(inventory_number__pk=1)).all()[:10]
+    context = {"items": [PDFBlock(contract_number="L1", instances=objs)]}
+    return render(request, "inventory/download-qr-codes.html", context)
+
 
 @login_required
 def search(request):
@@ -21,7 +27,6 @@ def search(request):
 def pre_create_historical_record_callback(sender, **kwargs):
     history_instance = kwargs['history_instance']
     instance = kwargs["instance"]
-    print(history_instance, instance)
     if hasattr(instance, "written_off"):
         history_instance.written_off = instance.written_off
     else:
@@ -46,6 +51,14 @@ class ContractNumberAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
         return _get_queryset_for_autocomplete(self.request, self.q, models.ContractNumber, ["number"])
+
+
+class InventoryNumberAutocomplete(autocomplete.Select2QuerySetView):
+    create_field = "number"
+    validate_create = True
+
+    def get_queryset(self):
+        return _get_queryset_for_autocomplete(self.request, self.q, models.InventoryNumber, ["number"])
 
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):

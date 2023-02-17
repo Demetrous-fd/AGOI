@@ -51,6 +51,17 @@ class MyAdminSite(admin.AdminSite):
                               'view': True},
                     'view_only': False
                 },
+                {
+                    'add_url': '/admin/inventory/inventorynumber/add/',
+                    'admin_url': '/admin/inventory/inventorynumber/',
+                    'name': 'Инвентарные номера',
+                    'object_name': 'ContractNumber',
+                    'perms': {'add': True,
+                              'change': True,
+                              'delete': True,
+                              'view': True},
+                    'view_only': False
+                }
             ],
             'name': 'Основные действия'
         })
