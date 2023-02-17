@@ -13,6 +13,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Ubuntu Mono', monospace;
+            text-align: center;
         }
         main {
             display: flex;
@@ -24,20 +25,15 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            margin-bottom: 20px;
         }
-        .container .blockTitle {
-            height: 30mm;
-            width: 100%;
-            display: block;
-            text-align: center;
-        }
-        .container .block {
+        .block {
             width: 100%;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
         }
-        .container .block .qr {
+        .block .qr {
             padding: 0;
             margin: 0;
             display: inline-block;
@@ -45,7 +41,6 @@
             border: black dashed 2px;
             border-radius: 10px;
             text-align: center;
-            margin-bottom: 20px;
         }
         .qr p {
             font-size: 12px;
@@ -63,14 +58,8 @@
     <main>
         {% for item in items %}
         <div class="container">
-            <div class="blockTitle">
-                <p>
-                    <hr>
-                    <b>Номер контракта: {{ item.contract_number }}</b>
-                    <hr>
-                <p>
-            </div>
             <div class="block">
+                <b>НК: {{ item.contract_number }}</b>
                 {% for instance in item.instances %}
                     <div class="qr">
                         {% qr_from_text instance.get_qr_url error_correction="L" size="T" %}
