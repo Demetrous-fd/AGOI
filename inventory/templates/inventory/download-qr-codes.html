@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
         main {
             display: flex;
             flex-wrap: wrap;
@@ -14,16 +18,23 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-        .container .title {
+        .container .blockTitle {
+            height: 30mm;
             width: 100%;
             display: block;
             text-align: center;
         }
-        .container img {
+        .container .block {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .container svg {
             border: black dashed 2px;
             border-radius: 10px;
-            margin: 5px;
-            height: 3cm;
+            height: 126px;
+            width: 126px;
         }
         hr {
             width: 100%;
@@ -34,11 +45,18 @@
     <main>
         {% for item in items %}
         <div class="container">
-            <h1 class="title">{{ item.contract_number }}</h1>
-            <hr>
-            {% for instance in item.instances %}
-                {% qr_from_text instance.pk image_format="png" error_correction="L" size="S" %}
-            {% endfor %}
+            <div class="blockTitle">
+                <p>
+                    <hr>
+                    <b>Номер контракта: {{ item.contract_number }}</b>
+                    <hr>
+                <p>
+            </div>
+            <div class="block">
+                {% for instance in item.instances %}
+                    {% qr_from_text instance.get_qr_url error_correction="L" size="S" %}
+                {% endfor %}
+            </div>
         </div>
         {% endfor %}
     </main>

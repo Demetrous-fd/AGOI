@@ -3,11 +3,28 @@ from typing import Literal, Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
+from enum import Enum
 import io
 
 from django.template.loader import get_template
 
 import pdfkit
+
+
+class PageSize(Enum):
+    A4 = "A4"
+    LP2824_PLUS = "LP2824_PLUS"
+
+
+def _get_page_size_options(page_size: PageSize) -> dict:
+    _page_size = {
+        PageSize.A4: {'page-size': "A4"},
+        PageSize.LP2824_PLUS: {
+            'page-width': 58,
+            'page-height': 30,
+        },
+    }
+    return _page_size.get(page_size, {})
 
 
 @dataclass(frozen=True)
@@ -17,17 +34,17 @@ class PDFBlock:
 
 
 @dataclass(frozen=True)
-class CreatePDFContext:
+class PDFContext:
     items: list[PDFBlock]
-    page_size: Literal["A4", "A5", "A6"]
+    page_size: PageSize
 
 
-def create_pdf(context: CreatePDFContext) -> io.BytesIO:
+def create_pdf(context: PDFContext) -> io.BytesIO:
     template = get_template("inventory/download-qr-codes.html")
     html = template.render({"items": context.items})
     buffer = io.BytesIO()
     options = {
-        'page-size': context.page_size,
+        **_get_page_size_options(context.page_size),
         'margin-top': '0',
         'margin-right': '0',
         'margin-bottom': '0',

@@ -19,6 +19,7 @@ from .filters import ConsumableBalanceFilter, MultiSelectFilter, ConstructNumber
 from .history import update_with_history
 from . import models, forms, pdf
 from AGOI.admin import site
+from .pdf import PageSize
 
 
 class ObjectAdmin(admin.ModelAdmin):
@@ -50,7 +51,7 @@ class ContractNumberAdmin(admin.ModelAdmin):
                     instances=instances.all()
                 )
             )
-        context = pdf.CreatePDFContext(items=data, page_size="A4")
+        context = pdf.PDFContext(items=data, page_size="A4")
         return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
 
@@ -67,7 +68,7 @@ class InstanceAdmin(SimpleHistoryAdmin):
     history_list_display = ("location", "owner")
     search_fields = ("pk", "contract_number__number")
     readonly_fields = ("object", "contract_number", "qr_preview")
-    actions = ("download_qr_codes",)
+    actions = ("download_qr_codes_2824", "download_qr_codes_a4")
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -82,8 +83,16 @@ class InstanceAdmin(SimpleHistoryAdmin):
         default.update(kwargs)
         return super().get_form(request, obj, change, **default)
 
-    @admin.action(description="Скачать QR-коды оборудования")
-    def download_qr_codes(self, request, queryset: QuerySet):
+    @admin.action(description="Скачать QR-коды оборудования для печати на LP 2824 Plus")
+    def download_qr_codes_2824(self, request, queryset: QuerySet):
+        return self.create_pdf_with_qr_codes(queryset, page_size=PageSize.LP2824_PLUS)
+
+    @admin.action(description="Скачать QR-коды оборудования в формате A4")
+    def download_qr_codes_a4(self, request, queryset: QuerySet):
+        return self.create_pdf_with_qr_codes(queryset, page_size=PageSize.A4)
+
+    @staticmethod
+    def create_pdf_with_qr_codes(queryset: QuerySet, page_size: PageSize):
         queryset = queryset.order_by("contract_number")
         data = []
         for key, group_items in groupby(queryset, key=attrgetter("contract_number")):
@@ -93,7 +102,7 @@ class InstanceAdmin(SimpleHistoryAdmin):
                     instances=tuple(group_items)
                 )
             )
-        context = pdf.CreatePDFContext(items=data, page_size="A4")
+        context = pdf.PDFContext(items=data, page_size=page_size)
         return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
     def save_model(self, request, obj, form, change):

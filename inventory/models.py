@@ -133,7 +133,7 @@ class Instance(models.Model):
     def __str__(self):
         return f"{self.object.name}: {self.id}"
 
-    def qr_preview(self):
+    def get_qr_url(self):
         if settings.USE_QR_FULL_URI and settings.APP_DOMAIN:
             path = reverse(
                 f"admin:{self._meta.app_label}_{self._meta.model_name}_change",
@@ -141,8 +141,11 @@ class Instance(models.Model):
             )
             url = f"{settings.APP_DOMAIN}" + (f":{settings.APP_EXTERNAL_PORT}" if settings.APP_EXTERNAL_PORT else "")
             uri = f"{url}{path}"
-            return qr_from_text(uri, size="T")
-        return qr_from_text(f"{self.pk}", size="T")
+            return uri
+        return str(self.pk)
+
+    def qr_preview(self):
+        return qr_from_text(self.get_qr_url(), size="T")
 
     class Meta:
         verbose_name = "Оборудование"

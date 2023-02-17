@@ -11,7 +11,6 @@ from dal import autocomplete
 from . import models
 
 
-# Create your views here.
 
 @login_required
 def search(request):
