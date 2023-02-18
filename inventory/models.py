@@ -20,7 +20,7 @@ class EquipmentType(models.Model):
         url = reverse(
             f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?equipment_type__id__exact={self.pk}'>Связанное оборудование</a>")
+            f"<a class='button' href='{url}?equipment_type__id__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
     class Meta:
@@ -51,14 +51,14 @@ class Object(models.Model):
     def show_instances_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?object__id__exact={self.pk}'>Просмотр оборудования</a>"
+            f"<a class='button' href='{url}?object__id__exact={self.pk}'>Просмотр оборудования</a>"
         )
     show_instances_in_admin_view.short_description = ""
 
     def show_consumable_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?object__id__exact={self.pk}'>Просмотр расходников</a>"
+            f"<a class='button' href='{url}?object__id__exact={self.pk}'>Просмотр расходников</a>"
         )
     show_consumable_in_admin_view.short_description = ""
 
@@ -113,14 +113,14 @@ class ContractNumber(models.Model):
         url = reverse(
             f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?contract_number__id__exact={self.pk}'>Связанное оборудование</a>")
+            f"<a class='button' href='{url}?contract_number__id__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
     def show_related_consumable_in_admin_view(self):
         url = reverse(
             f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
         return mark_safe(
-            f"<a href='{url}?contract_number__id__exact={self.pk}'>Связанные расходники</a>")
+            f"<a class='button' href='{url}?contract_number__id__exact={self.pk}'>Связанные расходники</a>")
     show_related_consumable_in_admin_view.short_description = ""
 
     class Meta:
@@ -156,10 +156,12 @@ class Instance(models.Model):
     location = models.ForeignKey(
         Location, default=1, null=True,
         on_delete=models.SET_NULL, verbose_name="Место нахождения")
+    comment = models.TextField(blank=True, verbose_name="Комментарий")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     history = HistoricalRecords(
         history_change_reason_field=models.TextField(null=True),
-        cascade_delete_history=True
+        cascade_delete_history=True,
+        excluded_fields=("comment", "object", "created_at"),
     )
 
     def get_qr_url(self):
