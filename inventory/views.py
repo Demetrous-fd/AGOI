@@ -46,12 +46,12 @@ class ContractNumberAutocomplete(autocomplete.Select2QuerySetView):
         return _get_queryset_for_autocomplete(self.request, self.q, models.ContractNumber, ["number"])
 
 
-class InventoryNumberAutocomplete(autocomplete.Select2QuerySetView):
-    create_field = "number"
+class EquipmentTypeAutocomplete(autocomplete.Select2QuerySetView):
+    create_field = "name"
     validate_create = True
 
     def get_queryset(self):
-        return _get_queryset_for_autocomplete(self.request, self.q, models.InventoryNumber, ["number"])
+        return _get_queryset_for_autocomplete(self.request, self.q, models.EquipmentType, ["name"])
 
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
