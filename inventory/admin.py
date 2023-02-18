@@ -31,8 +31,10 @@ from .pdf import PageSize
 
 class ObjectAdmin(admin.ModelAdmin):
     form = forms.ObjectForm
-    list_display = ("name", "equipment_type", "image_preview", "show_instances_in_admin_view", "show_consumable_in_admin_view")
-    readonly_fields = ("image_preview",)
+    list_display = (
+        "name", "equipment_type",
+        "show_instances_in_admin_view", "show_consumable_in_admin_view"
+    )
     search_fields = ("name",)
     prepopulated_fields = {
         "slug": ("name",)

@@ -37,16 +37,9 @@ class Object(models.Model):
         EquipmentType, null=True,
         on_delete=models.SET_NULL, verbose_name="Тип оборудования")
     description = models.TextField(blank=True, verbose_name="Описание")
-    image = models.ImageField(upload_to="images", null=True, blank=True, verbose_name="Изображение")
 
     def __str__(self):
         return f"{self.equipment_type}: {self.short_name}"
-
-    def image_preview(self):
-        if self.image:
-            return mark_safe(f"<img src='{self.image.url}' width='256' />")
-        return ""
-    image_preview.short_description = "Предпросмотр"
 
     def show_instances_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
