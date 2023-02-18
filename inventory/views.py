@@ -11,13 +11,6 @@ from dal import autocomplete
 from . import models
 
 
-def test_qr(request):
-    from .pdf import PDFBlock
-    objs = models.Instance.objects.filter(~Q(inventory_number__pk=1)).all()[:10]
-    context = {"items": [PDFBlock(contract_number="L1", instances=objs)]}
-    return render(request, "inventory/download-qr-codes.html", context)
-
-
 @login_required
 def search(request):
     return render(request, "inventory/search.html")

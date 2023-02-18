@@ -52,9 +52,9 @@ class MyAdminSite(admin.AdminSite):
                     'view_only': False
                 },
                 {
-                    'add_url': '/admin/inventory/inventorynumber/add/',
-                    'admin_url': '/admin/inventory/inventorynumber/',
-                    'name': 'Инвентарные номера',
+                    'add_url': '/admin/inventory/equipmenttype/add/',
+                    'admin_url': '/admin/inventory/equipmenttype/',
+                    'name': 'Типы оборудования',
                     'object_name': 'ContractNumber',
                     'perms': {'add': True,
                               'change': True,

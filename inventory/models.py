@@ -10,15 +10,37 @@ from django.urls import reverse
 from django.db import models
 
 
+class EquipmentType(models.Model):
+    name = models.CharField(max_length=128, verbose_name="Тип оборудования")
+
+    def __str__(self):
+        return self.name
+
+    def show_related_instances_in_admin_view(self):
+        url = reverse(
+            f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
+        return mark_safe(
+            f"<a href='{url}?equipment_type__id__exact={self.pk}'>Связанное оборудование</a>")
+    show_related_instances_in_admin_view.short_description = ""
+
+    class Meta:
+        verbose_name = "Тип оборудования"
+        verbose_name_plural = "Типы оборудования"
+
+
 class Object(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=128, verbose_name="Название")
+    name = models.CharField(max_length=256, verbose_name="Название")
+    short_name = models.CharField(max_length=32, verbose_name="Короткое название")
     slug = models.SlugField(max_length=128, unique=True, db_index=True, verbose_name="URL")
+    equipment_type = models.ForeignKey(
+        EquipmentType, null=True,
+        on_delete=models.SET_NULL, verbose_name="Тип оборудования")
     description = models.TextField(blank=True, verbose_name="Описание")
     image = models.ImageField(upload_to="images", null=True, blank=True, verbose_name="Изображение")
 
     def __str__(self):
-        return self.name
+        return f"{self.equipment_type}: {self.short_name}"
 
     def image_preview(self):
         if self.image:
@@ -117,46 +139,28 @@ class State(models.Model):
         verbose_name_plural = "Статусы"
 
 
-class InventoryNumber(models.Model):
-    number = models.CharField(max_length=64, verbose_name="Инвентарный номер")
-
-    def __str__(self):
-        return self.number
-
-    def show_related_instances_in_admin_view(self):
-        url = reverse(
-            f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
-        return mark_safe(
-            f"<a href='{url}?inventory_number__id__exact={self.pk}'>Связанное оборудование</a>")
-    show_related_instances_in_admin_view.short_description = ""
-
-    class Meta:
-        verbose_name = "Инвентарный номер"
-        verbose_name_plural = "Инвентарные номера"
-
-
 class Instance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    inventory_number = models.CharField(
+        max_length=32, default="Не указан", verbose_name="Инвентарный номер")
     object = models.ForeignKey(
         Object, on_delete=models.CASCADE, verbose_name="Объект")
-    owner = models.ForeignKey(
-        Owner, default=1, on_delete=models.SET_DEFAULT, verbose_name="Владелец")
-    state = models.ForeignKey(
-        State, default=1, on_delete=models.SET_DEFAULT, verbose_name="Статус")
-    inventory_number = models.ForeignKey(
-        InventoryNumber, default=1, on_delete=models.SET_DEFAULT, verbose_name="Инвентарный номер")
-    location = models.ForeignKey(
-        Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
     contract_number = models.ForeignKey(
         ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+    owner = models.ForeignKey(
+        Owner, default=1, null=True,
+        on_delete=models.SET_NULL, verbose_name="Владелец")
+    state = models.ForeignKey(
+        State, default=1, null=True,
+        on_delete=models.SET_NULL, verbose_name="Статус")
+    location = models.ForeignKey(
+        Location, default=1, null=True,
+        on_delete=models.SET_NULL, verbose_name="Место нахождения")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     history = HistoricalRecords(
         history_change_reason_field=models.TextField(null=True),
         cascade_delete_history=True
     )
-
-    def __str__(self):
-        return f"{self.object.name}: {self.pk}"
 
     def get_qr_url(self):
         if settings.USE_QR_FULL_URI and settings.APP_DOMAIN:
@@ -190,10 +194,11 @@ class ConsumableHistoryInfo(models.Model):
 class Consumable(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
-    location = models.ForeignKey(
-        Location, default=1, on_delete=models.SET_DEFAULT, verbose_name="Место нахождения")
     contract_number = models.ForeignKey(
         ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+    location = models.ForeignKey(
+        Location, default=1, null=True,
+        on_delete=models.SET_NULL, verbose_name="Место нахождения")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
     balance = models.IntegerField(
         default=10, validators=[validators.MinValueValidator(1)], verbose_name="Остаток")

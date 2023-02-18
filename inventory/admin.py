@@ -15,12 +15,13 @@ from django.utils.html import format_html
 from django.db.models import QuerySet, F
 from django.urls import reverse, path
 
+
 from .filters import (
     ConsumableBalanceFilter,
     MultiSelectFilter,
     ConstructNumberFilter,
     ObjectFilter,
-    InventoryNumberFilter
+    InventoryNumberFilter,
 )
 from .history import update_with_history
 from . import models, forms, pdf
@@ -29,7 +30,8 @@ from .pdf import PageSize
 
 
 class ObjectAdmin(admin.ModelAdmin):
-    list_display = ("name", "image_preview", "id", "show_instances_in_admin_view", "show_consumable_in_admin_view")
+    form = forms.ObjectForm
+    list_display = ("name", "equipment_type", "image_preview", "show_instances_in_admin_view", "show_consumable_in_admin_view")
     readonly_fields = ("image_preview",)
     search_fields = ("name",)
     prepopulated_fields = {
@@ -37,12 +39,12 @@ class ObjectAdmin(admin.ModelAdmin):
     }
 
 
-class InventoryNumberAdmin(admin.ModelAdmin):
+class EquipmentTypeAdmin(admin.ModelAdmin):
     list_display = (
-        "number",
+        "name",
         "show_related_instances_in_admin_view"
     )
-    search_fields = ("number",)
+    search_fields = ("name",)
 
 
 class ContractNumberAdmin(admin.ModelAdmin):
@@ -52,10 +54,18 @@ class ContractNumberAdmin(admin.ModelAdmin):
         "show_related_consumable_in_admin_view"
     )
     search_fields = ("number",)
-    actions = ["download_qr_codes"]
+    actions = ["download_qr_codes_2824", "download_qr_codes_a4"]
 
-    @admin.action(description="Скачать QR-коды оборудования из партии")
-    def download_qr_codes(self, request, queryset):
+    @admin.action(description="Скачать QR-коды оборудования для печати на LP 2824 Plus")
+    def download_qr_codes_2824(self, request, queryset: QuerySet):
+        return self.create_pdf_with_qr_codes(queryset, page_size=PageSize.LP2824_PLUS)
+
+    @admin.action(description="Скачать QR-коды оборудования в формате A4")
+    def download_qr_codes_a4(self, request, queryset: QuerySet):
+        return self.create_pdf_with_qr_codes(queryset, page_size=PageSize.A4)
+
+    @staticmethod
+    def create_pdf_with_qr_codes(queryset, page_size: PageSize):
         data = []
         for item in queryset:
             instances = models.Instance.objects.filter(contract_number__pk=item.pk)
@@ -65,7 +75,7 @@ class ContractNumberAdmin(admin.ModelAdmin):
                     instances=instances.all()
                 )
             )
-        context = pdf.PDFContext(items=data, page_size="A4")
+        context = pdf.PDFContext(items=data, page_size=page_size)
         return FileResponse(pdf.create_pdf(context), as_attachment=True, filename="qr-codes.pdf")
 
 
@@ -73,18 +83,19 @@ class InstanceAdmin(SimpleHistoryAdmin):
     model = models.Instance
     form = forms.InstanceForm
     list_display = (
-        "__str__", "inventory_number", "contract_number",
-        "state", "owner", "location",
+        "object", "inventory_number", "contract_number",
+        "state", "location",
         "created_at", "qr_preview"
     )
     list_filter = (
         ("state", MultiSelectFilter),
-        ("created_at", DateRangeFilter),
+        ("object__equipment_type", MultiSelectFilter),
         ObjectFilter,
         ConstructNumberFilter,
-        InventoryNumberFilter
+        InventoryNumberFilter,
+        ("created_at", DateRangeFilter),
     )
-    history_list_display = ("inventory_number", "location", "owner")
+    history_list_display = ("inventory_number", "state", "location", "owner")
     search_fields = ("pk", "contract_number__number")
     readonly_fields = ("object", "contract_number", "qr_preview")
     actions = ("download_qr_codes_2824", "download_qr_codes_a4")
@@ -164,16 +175,22 @@ class InstanceAdmin(SimpleHistoryAdmin):
 
 class ConsumableAdmin(SimpleHistoryAdmin):
     form = forms.ConsumableForm
-    list_display = ("__str__", "show_balance", "location", "contract_number", "created_at", "account_actions")
+    list_display = (
+        "__str__", "show_balance", "contract_number",
+        "location", "created_at", "account_actions"
+    )
     list_filter = (
         ConsumableBalanceFilter,
-        ("created_at", DateRangeFilter),
         ObjectFilter,
         ConstructNumberFilter,
+        ("created_at", DateRangeFilter),
     )
     history_list_display = ("location", "written_off", "balance", "initial_quantity")
     search_fields = ("pk", "contract_number__number")
-    readonly_fields = ("object", "contract_number", "show_balance", "initial_quantity", "balance", "account_actions")
+    readonly_fields = (
+        "object", "contract_number", "show_balance",
+        "initial_quantity", "balance", "account_actions"
+    )
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -257,11 +274,13 @@ class ConsumableAdmin(SimpleHistoryAdmin):
         )
 
 
-site.register(models.Object, ObjectAdmin)
-site.register(models.Instance, InstanceAdmin)
-site.register(models.Consumable, ConsumableAdmin)
 site.register(models.ContractNumber, ContractNumberAdmin)
-site.register(models.InventoryNumber, InventoryNumberAdmin)
+site.register(models.EquipmentType, EquipmentTypeAdmin)
+site.register(models.Consumable, ConsumableAdmin)
+site.register(models.Instance, InstanceAdmin)
+site.register(models.Object, ObjectAdmin)
+site.register(models.Location)
+site.register(models.Address)
 site.register(models.State)
 site.register(models.Address)
 site.register(models.Location)

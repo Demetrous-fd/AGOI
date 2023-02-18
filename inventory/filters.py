@@ -38,11 +38,11 @@ class InventoryNumberFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == "empty":
             return queryset.filter(
-                inventory_number__pk=1
+                inventory_number="Не указан"
             )
         if self.value() == "with_number":
             return queryset.filter(
-                ~Q(inventory_number__pk=1)
+                ~Q(inventory_number="Не указан")
             )
 
 

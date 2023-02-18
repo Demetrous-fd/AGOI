@@ -41,7 +41,7 @@ class PDFContext:
 
 def create_pdf(context: PDFContext) -> io.BytesIO:
     template = get_template("inventory/download-qr-codes.html")
-    html = template.render({"items": context.items})
+    html = template.render({"items": context.items, "page_size": context.page_size})
     buffer = io.BytesIO()
     options = {
         **_get_page_size_options(context.page_size),
