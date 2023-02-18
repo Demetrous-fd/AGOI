@@ -100,6 +100,7 @@ class InstanceAdmin(SimpleHistoryAdmin):
         ("created_at", DateRangeFilter),
     )
     search_fields = ("pk", "contract_number__number")
+    history_list_display = ("inventory_number", "owner", "state", "location")
     readonly_fields = ("object", "contract_number", "qr_preview")
     actions = ("download_qr_codes_2824", "download_qr_codes_a4")
 
