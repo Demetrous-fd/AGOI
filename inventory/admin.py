@@ -53,6 +53,10 @@ class ContractNumberAdmin(admin.ModelAdmin):
         "show_related_instances_in_admin_view",
         "show_related_consumable_in_admin_view"
     )
+    readonly_fields = (
+        "show_related_instances_in_admin_view",
+        "show_related_consumable_in_admin_view"
+    )
     search_fields = ("number",)
     actions = ["download_qr_codes_2824", "download_qr_codes_a4"]
 
@@ -95,7 +99,6 @@ class InstanceAdmin(SimpleHistoryAdmin):
         InventoryNumberFilter,
         ("created_at", DateRangeFilter),
     )
-    history_list_display = ("inventory_number", "state", "location", "owner")
     search_fields = ("pk", "contract_number__number")
     readonly_fields = ("object", "contract_number", "qr_preview")
     actions = ("download_qr_codes_2824", "download_qr_codes_a4")
@@ -177,7 +180,7 @@ class ConsumableAdmin(SimpleHistoryAdmin):
     form = forms.ConsumableForm
     list_display = (
         "__str__", "show_balance", "contract_number",
-        "location", "created_at", "account_actions"
+        "location", "created_at", "own_actions"
     )
     list_filter = (
         ConsumableBalanceFilter,
@@ -189,7 +192,7 @@ class ConsumableAdmin(SimpleHistoryAdmin):
     search_fields = ("pk", "contract_number__number")
     readonly_fields = (
         "object", "contract_number", "show_balance",
-        "initial_quantity", "balance", "account_actions"
+        "initial_quantity", "balance", "own_actions"
     )
 
     def get_readonly_fields(self, request, obj=None):
@@ -213,13 +216,13 @@ class ConsumableAdmin(SimpleHistoryAdmin):
         obj.balance = obj.initial_quantity
         super().save_model(request, obj, form, change)
 
-    def account_actions(self, obj):
+    def own_actions(self, obj):
         return format_html(
             '<a class="button" href="{}">Выдать расходники</a>&nbsp;',
             reverse('admin:consumable-write-off', args=[obj.pk])
         )
-    account_actions.short_description = 'Действия'
-    account_actions.allow_tags = True
+    own_actions.short_description = 'Действия'
+    own_actions.allow_tags = True
 
     def get_urls(self):
         urls = super().get_urls()

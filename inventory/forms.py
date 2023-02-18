@@ -1,5 +1,6 @@
 from dal import autocomplete
 from django import forms
+from django.core.exceptions import ValidationError
 
 from . import models
 
@@ -14,6 +15,13 @@ class ObjectForm(forms.ModelForm):
 
 
 class InstanceForm(forms.ModelForm):
+    def clean(self):
+        if "inventory_number" in self.changed_data:
+            change = self.data["inventory_number"]
+            if models.Instance.objects.filter(inventory_number=change).count():
+                raise ValidationError("!!! Оборудование с таким инвентарным номером уже существует !!!")
+        return super().clean()
+
     class Meta:
         model = models.Instance
         fields = "__all__"
