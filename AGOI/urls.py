@@ -23,4 +23,7 @@ from .admin import site
 urlpatterns = [
     path('admin/', site.urls),
     path("", include("inventory.urls"))
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+    urlpatterns.extend(static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))
