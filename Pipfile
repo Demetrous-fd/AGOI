@@ -16,6 +16,7 @@ whitenoise = "*"
 django-admin-autocomplete-filter = "*"
 django-more-admin-filters = "*"
 django-admin-rangefilter = "*"
+psycopg2 = "*"
 
 [dev-packages]
 

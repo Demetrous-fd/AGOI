@@ -8,3 +8,12 @@ services:
       - .:/app
     ports:
       - "${APP_HOST:-8000}:8000"
+    environment:
+      DB_HOST: db
+  db:
+    image: postgres:15.2
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}

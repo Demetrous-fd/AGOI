@@ -87,17 +87,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'AGOI.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+DB_ENGINE = getenv("DB_ENGINE", "sqlite")
+DB_OPTIONS = {
+    "sqlite": {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    "postgres": {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': getenv("DB_NAME", "postgres"),
+        'USER': getenv("DB_USER", "postgres"),
+        'PASSWORD': getenv("DB_PASSWORD", "postgres"),
+        'HOST': getenv("DB_HOST", "localhost"),
+        'PORT': getenv("DB_PORT", "5432"),
     }
 }
 
+DATABASES = {
+    'default': DB_OPTIONS[DB_ENGINE]
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -117,7 +128,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
@@ -130,7 +140,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -149,4 +158,4 @@ USE_QR_FULL_URI = False if getenv("USE_QR_FULL_URI", "").lower() != "true" else 
 APP_DOMAIN = getenv("APP_DOMAIN", None)
 _APP_EXTERNAL_PORT = getenv("APP_EXTERNAL_PORT", "")
 APP_EXTERNAL_PORT = _APP_EXTERNAL_PORT if _APP_EXTERNAL_PORT not in ("80", "443", "") \
-                 and _APP_EXTERNAL_PORT.isdigit() else ""
+                                          and _APP_EXTERNAL_PORT.isdigit() else ""
