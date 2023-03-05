@@ -27,6 +27,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         libjpeg62-turbo \
         fontconfig
 
+# install psycopg2 dependencies
+RUN apt-get install postgresql-dev gcc python3-dev musl-dev
+
 RUN set -ex && \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
     dpkg -i wkhtmltopdf.deb
