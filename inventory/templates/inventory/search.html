@@ -110,7 +110,7 @@
     <script src="https://github.com/mebjas/html5-qrcode/releases/download/v2.3.4/html5-qrcode.min.js"></script>
     <script>
         function onScanSuccess(decodedText, decodedResult) {
-            html5QrcodeScanner.stop();
+            document.getElementById("html5-qrcode-button-camera-stop").click()
             window.location = decodedText;
         }
 
