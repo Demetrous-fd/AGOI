@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -ex && \
     apt-get update \
-    && apt-get install -y libpq-dev
+    && apt-get install -y libpq-dev gcc
 
 RUN set -ex && \
     wget -O wkhtmltopdf.deb https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
