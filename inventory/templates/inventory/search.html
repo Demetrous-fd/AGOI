@@ -110,7 +110,7 @@
     <script src="https://github.com/mebjas/html5-qrcode/releases/download/v2.3.4/html5-qrcode.min.js"></script>
     <script>
         function onScanSuccess(decodedText, decodedResult) {
-            window.location = `/admin/inventory/instance/${decodedText}/change/`
+            window.location = decodedText
         }
 
         var html5QrcodeScanner = new Html5QrcodeScanner(
