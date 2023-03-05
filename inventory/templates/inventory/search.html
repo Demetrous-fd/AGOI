@@ -110,7 +110,9 @@
     <script src="https://github.com/mebjas/html5-qrcode/releases/download/v2.3.4/html5-qrcode.min.js"></script>
     <script>
         function onScanSuccess(decodedText, decodedResult) {
-            window.location = decodedText
+            html5QrcodeScanner.clear().then(_ => {
+                window.location = decodedText;
+            }).catch(error => {});
         }
 
         var html5QrcodeScanner = new Html5QrcodeScanner(
