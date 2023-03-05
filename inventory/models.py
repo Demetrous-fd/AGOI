@@ -164,7 +164,7 @@ class Instance(models.Model):
                 kwargs={"object_id": self.pk}
             )
             url = f"{settings.APP_DOMAIN}" + (f":{settings.APP_EXTERNAL_PORT}" if settings.APP_EXTERNAL_PORT else "")
-            uri = f"{url}{path}"
+            uri = f"{'https' if settings.APP_SSL_ENABLE else 'http'}://{url}{path}"
             return uri
         return str(self.pk)
 

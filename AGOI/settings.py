@@ -159,5 +159,6 @@ APP_DOMAIN = getenv("APP_DOMAIN", None)
 _APP_EXTERNAL_PORT = getenv("APP_EXTERNAL_PORT", "")
 APP_EXTERNAL_PORT = _APP_EXTERNAL_PORT if _APP_EXTERNAL_PORT not in ("80", "443", "") \
                                           and _APP_EXTERNAL_PORT.isdigit() else ""
+APP_SSL_ENABLE = True if getenv("APP_SSL_ENABLE", "false").lower() == "true" else False
 
 CSRF_TRUSTED_ORIGINS = [f"http://{APP_DOMAIN}:{APP_EXTERNAL_PORT}", f"https://{APP_DOMAIN}:{APP_EXTERNAL_PORT}"]
