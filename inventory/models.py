@@ -20,7 +20,7 @@ class EquipmentType(models.Model):
         url = reverse(
             f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a class='button' href='{url}?equipment_type__id__exact={self.pk}'>Связанное оборудование</a>")
+            f"<a class='button' href='{url}?equipment_type__pk__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
     class Meta:
@@ -44,14 +44,14 @@ class Object(models.Model):
     def show_instances_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a class='button' href='{url}?object__id__exact={self.pk}'>Просмотр оборудования</a>"
+            f"<a class='button' href='{url}?object__pk__exact={self.pk}'>Просмотр оборудования</a>"
         )
     show_instances_in_admin_view.short_description = ""
 
     def show_consumable_in_admin_view(self):
         url = reverse(f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
         return mark_safe(
-            f"<a class='button' href='{url}?object__id__exact={self.pk}'>Просмотр расходников</a>"
+            f"<a class='button' href='{url}?object__pk__exact={self.pk}'>Просмотр расходников</a>"
         )
     show_consumable_in_admin_view.short_description = ""
 
@@ -106,14 +106,14 @@ class ContractNumber(models.Model):
         url = reverse(
             f"admin:{self._meta.app_label}_{Instance._meta.model_name}_changelist")
         return mark_safe(
-            f"<a class='button' href='{url}?contract_number__id__exact={self.pk}'>Связанное оборудование</a>")
+            f"<a class='button' href='{url}?contract_number__pk__exact={self.pk}'>Связанное оборудование</a>")
     show_related_instances_in_admin_view.short_description = ""
 
     def show_related_consumable_in_admin_view(self):
         url = reverse(
             f"admin:{self._meta.app_label}_{Consumable._meta.model_name}_changelist")
         return mark_safe(
-            f"<a class='button' href='{url}?contract_number__id__exact={self.pk}'>Связанные расходники</a>")
+            f"<a class='button' href='{url}?contract_number__pk__exact={self.pk}'>Связанные расходники</a>")
     show_related_consumable_in_admin_view.short_description = ""
 
     class Meta:
