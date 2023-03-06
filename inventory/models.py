@@ -30,7 +30,7 @@ class EquipmentType(models.Model):
 
 class Object(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=256, verbose_name="Название")
+    name = models.CharField(max_length=256, db_index=True, verbose_name="Название")
     short_name = models.CharField(max_length=32, verbose_name="Короткое название")
     slug = models.SlugField(max_length=128, unique=True, db_index=True, verbose_name="URL")
     equipment_type = models.ForeignKey(
@@ -97,7 +97,7 @@ class Owner(models.Model):
 
 
 class ContractNumber(models.Model):
-    number = models.CharField(max_length=128, unique=True, verbose_name="Номер контракта")
+    number = models.CharField(max_length=128, unique=True, db_index=True, verbose_name="Номер контракта")
 
     def __str__(self):
         return self.number
@@ -135,11 +135,11 @@ class State(models.Model):
 class Instance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     inventory_number = models.CharField(
-        max_length=32, default="Не указан", verbose_name="Инвентарный номер")
+        max_length=32, default="Не указан", db_index=True, verbose_name="Инвентарный номер")
     object = models.ForeignKey(
-        Object, on_delete=models.CASCADE, verbose_name="Объект")
+        Object, on_delete=models.CASCADE, db_index=True, verbose_name="Объект")
     contract_number = models.ForeignKey(
-        ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+        ContractNumber, on_delete=models.CASCADE, db_index=True, verbose_name="Номер контракта")
     owner = models.ForeignKey(
         Owner, default=1, null=True,
         on_delete=models.SET_NULL, verbose_name="Владелец")
@@ -188,9 +188,9 @@ class ConsumableHistoryInfo(models.Model):
 
 class Consumable(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    object = models.ForeignKey(Object, on_delete=models.CASCADE, verbose_name="Объект")
+    object = models.ForeignKey(Object, on_delete=models.CASCADE, db_index=True, verbose_name="Объект")
     contract_number = models.ForeignKey(
-        ContractNumber, on_delete=models.CASCADE, verbose_name="Номер контракта")
+        ContractNumber, on_delete=models.CASCADE, db_index=True, verbose_name="Номер контракта")
     location = models.ForeignKey(
         Location, default=1, null=True,
         on_delete=models.SET_NULL, verbose_name="Место нахождения")
