@@ -17,6 +17,10 @@ django-admin-autocomplete-filter = "*"
 django-more-admin-filters = "*"
 django-admin-rangefilter = "*"
 psycopg2 = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 

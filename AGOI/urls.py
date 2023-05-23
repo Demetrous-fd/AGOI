@@ -22,7 +22,9 @@ from .admin import site
 
 urlpatterns = [
     path('admin/', site.urls),
-    path("", include("inventory.urls"))
+    path("", include("inventory.urls")),
+    path('api/v1/', include('djoser.urls')),
+    path('api/v1/', include('djoser.urls.jwt')),
 ]
 
 if settings.DEBUG:
