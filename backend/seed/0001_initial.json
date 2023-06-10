@@ -1,0 +1,130 @@
+[
+  {
+    "model": "inventory.Location",
+    "pk": 1,
+    "fields": {
+      "name": "Не указано"
+    }
+  },
+  {
+    "model": "inventory.Location",
+    "pk": 2,
+    "fields": {
+      "name": "Склад"
+    }
+  },
+  {
+    "model": "inventory.State",
+    "pk": 1,
+    "fields": {
+      "name": "На учете"
+    }
+  },
+  {
+    "model": "inventory.State",
+    "pk": 2,
+    "fields": {
+      "name": "Списано"
+    }
+  },
+  {
+    "model": "inventory.Address",
+    "pk": 1,
+    "fields": {
+      "name": "Не указан"
+    }
+  },
+  {
+    "model": "inventory.Owner",
+    "pk": 1,
+    "fields": {
+      "first_name": " ",
+      "second_name": "Не указан",
+      "last_name": " "
+    }
+  },
+  {
+    "fields": {
+      "name": "Принтер"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "name": "МФУ"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "name": "Сканер"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "name": "Монитор"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 4
+  },
+  {
+    "fields": {
+      "name": "Клавиатура"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 5
+  },
+  {
+    "fields": {
+      "name": "Компьютерная мышь"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 6
+  },
+  {
+    "fields": {
+      "name": "Маршрутизатор"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 7
+  },
+  {
+    "fields": {
+      "name": "Роутер"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 8
+  },
+  {
+    "fields": {
+      "name": "Ноутбук"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 9
+  },
+  {
+    "fields": {
+      "name": "Моноблок"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 10
+  },
+  {
+    "fields": {
+      "name": "Системный блок"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 11
+  },
+  {
+    "fields": {
+      "name": "USB-флешка"
+    },
+    "model": "inventory.EquipmentType",
+    "pk": 12
+  }
+]
