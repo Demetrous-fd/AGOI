@@ -15,9 +15,9 @@ from django.core.asgi import get_asgi_application
 import django
 
 django.setup()
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AGOI.settings')
 import inventory
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AGOI.settings')
 
 # application = get_asgi_application()
 
