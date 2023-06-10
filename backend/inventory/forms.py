@@ -25,13 +25,14 @@ class InstanceForm(forms.ModelForm):
             exists_instance = models.Instance.objects.filter(
                 inventory_number__in=[number.strip() for number in self.data["inventory_numbers"].split("\n")]
             ).values_list("inventory_number", flat=True).all()
-            raise ValidationError(
-                [
-                    ValidationError(value, code=index) for index, value in enumerate([
-                    "!!! Оборудование с таким инвентарным номером уже существует !!!",
-                    *[f"- {number}" for number in exists_instance]])
-                ]
-            )
+            if exists_instance:
+                raise ValidationError(
+                    [
+                        ValidationError(value, code=index) for index, value in enumerate([
+                        "!!! Оборудование с таким инвентарным номером уже существует !!!",
+                        *[f"- {number}" for number in exists_instance]])
+                    ]
+                )
 
         return super().clean()
 
