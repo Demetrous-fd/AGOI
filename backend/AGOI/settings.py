@@ -36,8 +36,14 @@ else:
     ALLOWED_HOSTS = ["127.0.0.1", "localhost", getenv("APP_DOMAIN", "localhost")]
     USE_X_FORWARDED_PORT = True
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:7000', 'http://127.0.0.1:8000']
-
+CORS_ALLOWED_ORIGINS = getenv("APP_CORS_DOMAINS", "ANY")
+if CORS_ALLOWED_ORIGINS != "ANY":
+    temp = []
+    for domain in CORS_ALLOWED_ORIGINS.split(";"):
+        temp.extend([f"http://{domain}", f"https://{domain}"])
+    CORS_ALLOWED_ORIGINS = temp
+    del temp
+print(CORS_ALLOWED_ORIGINS)
 # Application definition
 
 INSTALLED_APPS = [
