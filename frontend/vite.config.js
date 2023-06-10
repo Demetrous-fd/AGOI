@@ -37,6 +37,9 @@ export default defineConfig({
                         type: 'image/png'
                     }
                 ]
+            },
+            workbox: {
+                navigateFallbackDenylist: [/^\/admin.*/, /^\/api.*/, /^\/autocomplete.*/, /^\/ws.*/, /^\/statis.*/]
             }
         })
     ],
