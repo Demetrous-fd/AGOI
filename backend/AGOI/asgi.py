@@ -16,7 +16,7 @@ import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AGOI.settings')
 django.setup()
-import inventory
+from inventory import urls
 
 
 # application = get_asgi_application()
@@ -24,6 +24,6 @@ import inventory
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AllowedHostsOriginValidator(
-        URLRouter(inventory.urls.websocket_urlpatterns)
+        URLRouter(urls.websocket_urlpatterns)
     ),
 })
