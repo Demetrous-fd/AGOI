@@ -41,12 +41,11 @@ RUN set -ex && \
 RUN rm -rf /var/lib/apt/lists/*
 
 RUN set -ex && \
-    pip install --upgrade pip && \
-    pip install pipenv && \
+    pip install --user pipenv && \
     rm -rf /root/.cache/
 
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --system
+RUN PIPENV_VENV_IN_PROJECT=1 /root/.local/bin/pipenv install
 # Expose port 8000
 EXPOSE 8000
 
-CMD ["bash", "-c", "./wait-for-postgres.sh db && python manage.py migrate --no-input && daphne -b 0.0.0.0 -p 8000 AGOI.asgi:application"]
+CMD ["bash", "-c", ". ./wait-for-postgres.sh db && /usr/src/.venv/bin/python manage.py migrate --no-input && /usr/src/.venv/bin/python -m daphne -b 0.0.0.0 -p 8000 AGOI.asgi:application"]
