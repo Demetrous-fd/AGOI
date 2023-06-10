@@ -43,7 +43,7 @@ if CORS_ALLOWED_ORIGINS != "ANY":
         temp.extend([f"http://{domain}", f"https://{domain}"])
     CORS_ALLOWED_ORIGINS = temp
     del temp
-print(CORS_ALLOWED_ORIGINS)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -201,4 +201,7 @@ APP_EXTERNAL_PORT = _APP_EXTERNAL_PORT if _APP_EXTERNAL_PORT not in ("80", "443"
 APP_SSL_ENABLE = True if getenv("APP_SSL_ENABLE", "false").lower() == "true" else False
 
 FRONTEND_URL = f"{getenv('FRONTEND_URL', f'{APP_DOMAIN}:{APP_EXTERNAL_PORT}')}"
-CSRF_TRUSTED_ORIGINS = [f"http://{APP_DOMAIN}:{APP_EXTERNAL_PORT}", f"https://{APP_DOMAIN}:{APP_EXTERNAL_PORT}"]
+if _APP_EXTERNAL_PORT not in ("80", "443", ""):
+    CSRF_TRUSTED_ORIGINS = [f"http://{APP_DOMAIN}:{APP_EXTERNAL_PORT}", f"https://{APP_DOMAIN}:{APP_EXTERNAL_PORT}"]
+else:
+    CSRF_TRUSTED_ORIGINS = [f"http://{APP_DOMAIN}", f"https://{APP_DOMAIN}"]
