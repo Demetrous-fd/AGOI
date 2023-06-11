@@ -7,7 +7,7 @@
       </n-grid-item>
       <n-grid-item span="2" class="mainMenu">
         <n-card :bordered="false">
-          <n-h1>Привет 🖐</n-h1>
+          <n-h1>Привет <n-text @click="next">{{ hi }}</n-text></n-h1>
           <n-button-group vertical style="width: 100%">
             <router-link v-slot="{ navigate }" :to="{ name: 'inventoryPrepare' }" custom>
               <n-button size="large" @click="navigate">Начать инвентаризацию 📝</n-button>
@@ -37,9 +37,14 @@ import {RouterLink} from 'vue-router'
 import {useMessage} from "naive-ui";
 
 export default {
-  data: () => ({
-    message: useMessage()
-  }),
+  data() {
+    return {
+      message: useMessage(),
+      hiList: ['🖐', '👊', '✊', '👊', '🖐', '👏'],
+      hi: '🖐',
+      hiIndex: 0
+    }
+  },
   methods: {
     goToAdmin() {
       location.href = `${import.meta.env.VITE_API_URL}/admin/`
@@ -60,6 +65,11 @@ export default {
         }
         this.$refs.qrScanner.stopQrScan()
       }
+    },
+    next(){
+      this.hi = this.hiList[++this.hiIndex]
+      if (!this.hi)
+        this.hi = '🌚'
     }
   }
 }
