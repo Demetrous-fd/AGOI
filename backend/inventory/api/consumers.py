@@ -30,6 +30,7 @@ class ModelConsumerObserver(AsyncAPIConsumer):
                 "model": "report-item"
             })
             del message["instance"]
+            del message["report"]
 
             await self.reply(data=message, action=action)
 
