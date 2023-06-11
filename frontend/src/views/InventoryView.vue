@@ -300,6 +300,7 @@ export default defineComponent({
       this.instances["Не соответствующее месту нахождения"].currentCount++
       this.instances["Не соответствующее месту нахождения"].ids.push({id: instanceId, number: "Не указано"})
       localStorage.setItem(`instancesId-${this.reportId}-offline`, JSON.stringify(instancesId))
+      this.scannedInstances.push(instanceId)
       return false
     },
     tryAddReportItem(instanceId) {
