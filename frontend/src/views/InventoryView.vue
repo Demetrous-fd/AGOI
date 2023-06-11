@@ -305,7 +305,9 @@ export default defineComponent({
     tryAddReportItem(instanceId) {
       createReportItem(this.reportId, instanceId).then(
           response => {
-            this.scannedInstances.push(instanceId)
+            if (this.scannedInstances.includes(instanceId))
+              return
+
             if (response.data.status !== "error") {
               this.instances[response.data.name].currentCount++
               this.message.success("Добавлено", {duration: 1000, placement: "bottom"})
