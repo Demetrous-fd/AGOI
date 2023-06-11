@@ -266,18 +266,17 @@ export default defineComponent({
       if (data.model !== "report-item")
         return
 
-      if (this.scannedInstances.includes(data.instanceId))
-        return
-
-      this.scannedInstances.push(data.instanceId)
-      if (data.status !== "error") {
-        this.instances[data.name].currentCount++
-      } else {
-        this.instances["Не соответствующее месту нахождения"].currentCount++
-        this.instances["Не соответствующее месту нахождения"]["ids"].push({
-          id: data.instanceId,
-          number: data.number
-        })
+      if (!this.scannedInstances.includes(data.instanceId)) {
+        this.scannedInstances.push(data.instanceId)
+        if (data.status !== "error") {
+          this.instances[data.name].currentCount++
+        } else {
+          this.instances["Не соответствующее месту нахождения"].currentCount++
+          this.instances["Не соответствующее месту нахождения"]["ids"].push({
+            id: data.instanceId,
+            number: data.number
+          })
+        }
       }
     },
     addInstanceToOfflineStorage(instanceId) {
