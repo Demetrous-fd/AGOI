@@ -48,4 +48,4 @@ RUN PIPENV_VENV_IN_PROJECT=1 /root/.local/bin/pipenv install
 # Expose port 8000
 EXPOSE 8000
 
-CMD ["bash", "-c", ". ./wait-for-postgres.sh db && /app/.venv/bin/python manage.py migrate --no-input && /app/.venv/bin/python -m daphne -b 0.0.0.0 -p 8000 AGOI.asgi:application"]
+CMD ["bash", "-c", ". ./wait-for-postgres.sh db && /app/.venv/bin/python manage.py collectstatic && /app/.venv/bin/python manage.py migrate --no-input && /app/.venv/bin/python -m daphne -b 0.0.0.0 -p 8000 AGOI.asgi:application"]
