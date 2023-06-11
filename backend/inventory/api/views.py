@@ -18,8 +18,6 @@ from ..table import TableBuilder
 from . import serializer
 from .. import models
 
-from rest_framework.permissions import AllowAny
-
 
 class DualSerializerViewSet(viewsets.ModelViewSet):
     # mapping serializer into the action
@@ -67,7 +65,6 @@ class ReportView(DualSerializerViewSet):
         "item": serializer.ReportScannedItemSerializer,
         "retrieve": serializer.ReportGetSerializer
     }
-    permission_classes = [AllowAny]
 
     @staticmethod
     def block_finished_report(func):
