@@ -3,7 +3,7 @@
 
     <n-grid :x-gap="12" :y-gap="12" cols="1 s:3" responsive="screen">
       <n-grid-item>
-        <QrScanner v-on:handleQrScan="handleQrScan"/>
+        <QrScanner ref="qrScanner" v-on:handleQrScan="handleQrScan"/>
       </n-grid-item>
       <n-grid-item span="2" class="mainMenu">
         <n-card :bordered="false">
@@ -58,6 +58,7 @@ export default {
           else
             this.$refs.modalInfo.instanceId = uuid[0]
         }
+        this.$refs.qrScanner.stopQrScan()
       }
     }
   }
