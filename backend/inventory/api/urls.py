@@ -18,5 +18,5 @@ urlpatterns = [
 ]
 
 websocket_urlpatterns = [
-    re_path("ws/$", consumers.ModelConsumerObserver.as_asgi()),
+    re_path("^ws/$", consumers.ModelConsumerObserver.as_asgi()),
 ]
