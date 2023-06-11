@@ -51,6 +51,7 @@ export function refreshToken() {
         response => {
             if (response.status === 200) {
                 authStore.access = response.data.access
+                authStore.refresh = response.data.refresh
                 authStore.lastVerify.result = true
                 axios.defaults.headers.common['Authorization'] = 'Bearer ' + response.data.access
             }

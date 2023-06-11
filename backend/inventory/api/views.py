@@ -190,12 +190,29 @@ class ReportView(DualSerializerViewSet):
         ).values_list("object__name", "inventory_number"):
             items[f"{key}-unknown"].append(number)
 
+        for key, number in models.Instance.objects.filter(
+                id__in=instances
+            ).exclude(
+                id__in=scanned_instances
+        ).values_list("object__name", "inventory_number"):
+            items[f"{key}-not-found"].append(number)
+
+        skip = []
         for key in items:
-            if "-unknown" in key:
+            if "-unknown" in key and "unknown" not in skip:
                 table.add_line([])
                 table.add_line(["Не соответствующее месту нахождения"])
                 table.add_line(["Наименование", "Инвентарные номера"])
-            table.add_line([key.replace("-unknown", ""), "\r\n".join(items[key])], [2])
+                skip.append("unknown")
+            elif "-not-found" in key and "not-found" not in skip:
+                table.add_line([])
+                table.add_line(["Неотсканированные"])
+                table.add_line(["Наименование", "Инвентарные номера"])
+                skip.append("not-found")
+
+            table.add_line(
+                [key.replace("-unknown", "").replace("not-found", ""), "\r\n".join(items[key])], [2]
+            )
 
         table.write(response)
         return response

@@ -56,8 +56,8 @@
       </n-collapse>
       <template #action>
         <div style="display: flex; justify-content: center">
-          <n-button>
-            <a :href="downloadUrl" download style="text-decoration: none">Скачать отчёт</a>
+          <n-button @click="download(this.reportId)">
+            Скачать отчёт
           </n-button>
         </div>
       </template>
@@ -71,7 +71,8 @@ import {
   getReport,
   getCountInstances,
   getCountScannedInstances,
-  getScannedInstancesId
+  getScannedInstancesId,
+  downloadReport
 } from "@/services/report";
 import BackButton from "@/components/BackButton.vue";
 import InstanceInfo from "@/components/InstanceInfo.vue";
@@ -96,8 +97,7 @@ export default {
         }
       },
       report: ref({}),
-      scannedInstances: [],
-      downloadUrl: `${import.meta.env.VITE_API_URL}/api/v1/report/${this.reportId}/download/`
+      scannedInstances: []
     }
   },
   mounted() {
@@ -109,10 +109,10 @@ export default {
           this.report = response.data
         }
     )
-    this.test()
+    this.loadData()
   },
   methods: {
-    test() {
+    loadData() {
       getCountInstances(this.reportId).then(
           response => {
             for (const instance of response.data) {
@@ -143,6 +143,10 @@ export default {
       getScannedInstancesId(this.reportId).then(
           response => this.scannedInstances = response.data
       )
+    },
+    download(id){
+      const reportCreatedAt = (new Date(this.report.created_at)).toLocaleString().slice(0, 10)
+      downloadReport(id, `${this.report.location.name} ${reportCreatedAt}`)
     }
   }
 }

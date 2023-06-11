@@ -32,6 +32,7 @@ const refreshAuthLogic = (failedRequest) => {
     if (authStore.refresh) {
         axios.post('/api/v1/jwt/refresh', {refresh: authStore.refresh}).then((response) => {
             authStore.access = response.data.access
+            authStore.refresh = response.data.refresh
             authStore.lastVerify.result = response.status === 200
             failedRequest.response.config.headers['Authorization'] = 'Bearer ' + authStore.access;
             return Promise.resolve();

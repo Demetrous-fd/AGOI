@@ -72,3 +72,17 @@ export function removeReportFromLocalStorage(id) {
     const result = reports.filter(report => report.id !== id)
     localStorage.setItem("reports", JSON.stringify(result))
 }
+
+export function downloadReport(id, filename) {
+    axios.get(`api/v1/report/${id}/download/`, {responseType: 'blob'}).then(
+        response => {
+            var url = window.URL.createObjectURL(new Blob([response.data]));
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.xlsx`;
+            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+            a.click();
+            a.remove();  //afterwards we remove the element again
+        }
+    )
+}
