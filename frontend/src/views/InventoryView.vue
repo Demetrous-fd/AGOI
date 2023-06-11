@@ -116,6 +116,7 @@ export default defineComponent({
     }
   },
   mounted() {
+    this.offline = navigator.onLine === false
     getReport(this.reportId).then(
         response => {
           if (response.data.status === 'finish')
