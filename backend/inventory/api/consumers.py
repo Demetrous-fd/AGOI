@@ -23,8 +23,8 @@ class ModelConsumerObserver(AsyncAPIConsumer):
                     .values_list("inventory_number", "object__name").get
             )(pk=message["instance"])
             message.update({
-                "report": str(message["report"]),
-                "id": str(message["instance"]),
+                "id": str(message["report"]),
+                "instanceId": str(message["instance"]),
                 "number": instance[0],
                 "name": instance[1],
                 "model": "report-item"
