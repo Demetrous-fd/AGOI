@@ -254,7 +254,19 @@ export default defineComponent({
     },
     handleReportEvent(event) {
       const data = JSON.parse(event.data).data
-      if (this.scannedInstances.includes(data.id) && this.reportId === data.report)
+      if (this.reportId !== data.report)
+        return
+
+      if (data.model === "report" && data.status === "finish") {
+        this.clearReportData()
+        this.$router.push({name: 'report', params: {reportId: this.reportId}})
+        return
+      }
+
+      if (data.model !== "report-item")
+        return
+
+      if (this.scannedInstances.includes(data.id))
         return
 
       this.scannedInstances.push(data.id)
@@ -327,15 +339,18 @@ export default defineComponent({
     finishHandler() {
       finishReport(this.reportId).then(
           _ => {
-            removeReportFromLocalStorage(this.reportId)
-            localStorage.removeItem(this.reportId)
-            localStorage.removeItem(`instancesId-${this.reportId}`)
-            localStorage.removeItem(`instancesId-${this.reportId}-offline`)
+            this.clearReportData()
             this.$router.push({name: 'report', params: {reportId: this.reportId}})
           }
       ).catch(
           e => this.$router.push({name: 'home'})
       )
+    },
+    clearReportData() {
+      removeReportFromLocalStorage(this.reportId)
+      localStorage.removeItem(this.reportId)
+      localStorage.removeItem(`instancesId-${this.reportId}`)
+      localStorage.removeItem(`instancesId-${this.reportId}-offline`)
     }
   }
 });
