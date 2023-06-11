@@ -99,8 +99,7 @@ export default defineComponent({
     return {
       showModal: ref(false),
       offline: ref(false),
-      message: useMessage(),
-      lockScanner: false
+      message: useMessage()
     };
   },
   data() {
@@ -112,7 +111,8 @@ export default defineComponent({
           ids: []
         }
       },
-      scannedInstances: []
+      scannedInstances: [],
+      ignore: {}
     }
   },
   mounted() {
@@ -218,9 +218,11 @@ export default defineComponent({
     },
     uploadOfflineScannedInstances() {
       let instancesId = JSON.parse(localStorage.getItem(`instancesId-${this.reportId}-offline`))
-      instancesId = instancesId === null ? [] : instancesId
-      if (instancesId.length > 0) {
-        for (const instance of instancesId) {
+      instancesId = instancesId === null ? {real: [], unknown: []} : instancesId
+      const ids = [...instancesId.real, ...instancesId.unknown]
+
+      if (ids.length > 0) {
+        for (const instance of ids) {
           this.tryAddReportItem(instance)
         }
         localStorage.setItem(`instancesId-${this.reportId}-offline`, null)
@@ -235,29 +237,29 @@ export default defineComponent({
     handleQrScan(result) {
       const uuidRegex = /[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}/i
       const uuid = result.data.match(uuidRegex)
-      delay(500).then(
-          _ => {
-            if (this.lockScanner)
-              return
+      if (!uuid)
+        return
 
-            this.lockScanner = true
-            if (uuid && !this.scannedInstances.includes(uuid[0])) {
-              this.scannedInstances.push(uuid[0])
-              this.tryAddReportItem(uuid[0])
-            } else if (uuid) {
-              this.message.warning("Оборудование было добавлено ранее.")
-            }
-          }
-      ).then(_ => this.lockScanner = false).catch(e => this.lockScanner = false)
+      if (this.ignore[uuid[0]])
+        return
+
+      this.ignore[uuid[0]] = 1
+      setTimeout(() => delete this.ignore[uuid[0]], 2000)
+      if (!this.scannedInstances.includes(uuid[0])) {
+        this.scannedInstances.push(uuid[0])
+        this.tryAddReportItem(uuid[0])
+      } else if (uuid) {
+        this.message.warning("Оборудование было добавлено ранее.")
+      }
     },
     handleReportEvent(event) {
       const data = JSON.parse(event.data).data
       if (this.scannedInstances.includes(data.id) && this.reportId === data.report)
         return
 
+      this.scannedInstances.push(data.id)
       if (data.status !== "error") {
         this.instances[data.name].currentCount++
-        this.instances[data.name].ids.push({id: data.id, number: data.number})
       } else {
         this.instances["Не соответствующее месту нахождения"].currentCount++
         this.instances["Не соответствующее месту нахождения"]["ids"].push({
@@ -273,12 +275,13 @@ export default defineComponent({
       for (const key in this.instances) {
         if (key === "Не соответствующее месту нахождения")
           continue
-
-        if (this.instances[key].ids.includes(instanceId)) {
-          instancesId.real.push(instanceId)
-          this.instances[key].currentCount++
-          localStorage.setItem(`instancesId-${this.reportId}-offline`, JSON.stringify(instancesId))
-          return true
+        for (const instance of this.instances[key].ids) {
+          if (instance.id === instanceId) {
+            instancesId.real.push(instanceId)
+            this.instances[key].currentCount++
+            localStorage.setItem(`instancesId-${this.reportId}-offline`, JSON.stringify(instancesId))
+            return true
+          }
         }
       }
       instancesId.unknown.push(instanceId)
@@ -286,14 +289,13 @@ export default defineComponent({
       this.instances["Не соответствующее месту нахождения"].ids.push({id: instanceId, number: "Не указано"})
       localStorage.setItem(`instancesId-${this.reportId}-offline`, JSON.stringify(instancesId))
       return false
-    }
-    ,
+    },
     tryAddReportItem(instanceId) {
       createReportItem(this.reportId, instanceId).then(
           response => {
+            this.scannedInstances.push(instanceId)
             if (response.data.status !== "error") {
               this.instances[response.data.name].currentCount++
-              this.instances[response.data.name].ids.push({id: instanceId, number: response.data.number})
               this.message.success("Добавлено", {duration: 1000, placement: "bottom"})
             } else {
               this.instances["Не соответствующее месту нахождения"].currentCount++
@@ -321,8 +323,7 @@ export default defineComponent({
               this.message.success("Добавлено", {duration: 1000, placement: "bottom"})
           }
       )
-    }
-    ,
+    },
     finishHandler() {
       finishReport(this.reportId).then(
           _ => {
