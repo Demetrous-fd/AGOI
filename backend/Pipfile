@@ -23,6 +23,7 @@ djoser = "*"
 djangorestframework-simplejwt = "*"
 djangochannelsrestframework = "*"
 daphne = "*"
+openpyxl = "*"
 
 [dev-packages]
 

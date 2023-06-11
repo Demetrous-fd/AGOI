@@ -246,7 +246,6 @@ export default defineComponent({
       this.ignore[uuid[0]] = 1
       setTimeout(() => delete this.ignore[uuid[0]], 2000)
       if (!this.scannedInstances.includes(uuid[0])) {
-        this.scannedInstances.push(uuid[0])
         this.tryAddReportItem(uuid[0])
       } else if (uuid) {
         this.message.warning("Оборудование было добавлено ранее.")

@@ -54,6 +54,13 @@
           </n-collapse>
         </n-collapse-item>
       </n-collapse>
+      <template #action>
+        <div style="display: flex; justify-content: center">
+          <n-button>
+            <a :href="downloadUrl" download style="text-decoration: none">Скачать отчёт</a>
+          </n-button>
+        </div>
+      </template>
     </n-card>
   </div>
   <InstanceInfo ref="modalInfo"/>
@@ -89,7 +96,8 @@ export default {
         }
       },
       report: ref({}),
-      scannedInstances: []
+      scannedInstances: [],
+      downloadUrl: `${import.meta.env.VITE_API_URL}/api/v1/report/${this.reportId}/download/`
     }
   },
   mounted() {
@@ -157,7 +165,7 @@ td, th {
   }
 }
 
-@media (min-width: 1024px) or (min-width: 1281px){
+@media (min-width: 1024px) or (min-width: 1281px) {
   .n-card {
     width: 70%;
   }

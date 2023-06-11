@@ -4,16 +4,21 @@ from functools import wraps
 import uuid
 
 from rest_framework import generics, mixins, viewsets, status
+from django.http import Http404, QueryDict, HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.generics import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.request import Request
-from django.http import Http404, QueryDict
 from django.db.models import Count, F
+from django.conf import settings
+from zoneinfo import ZoneInfo
 
+from ..table import TableBuilder
 from . import serializer
 from .. import models
+
+from rest_framework.permissions import AllowAny
 
 
 class DualSerializerViewSet(viewsets.ModelViewSet):
@@ -62,6 +67,7 @@ class ReportView(DualSerializerViewSet):
         "item": serializer.ReportScannedItemSerializer,
         "retrieve": serializer.ReportGetSerializer
     }
+    permission_classes = [AllowAny]
 
     @staticmethod
     def block_finished_report(func):
@@ -115,6 +121,88 @@ class ReportView(DualSerializerViewSet):
 
         return Response(queryset)
 
+    @action(detail=True, methods=["GET"], url_path="download")
+    def download(self, request: Request, pk=None):
+        report = get_object_or_404(models.Report, pk=pk)
+        if report.status != "finish":
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        response = HttpResponse(content_type='application/ms-excel')
+        filename = f"{report.location}_{report.created_at.strftime('%d.%m.%Y')}"
+        response['Content-Disposition'] = f'attachment; ' \
+                                          f'filename="{filename}.xlsx";'.encode("utf-8")
+
+        table = TableBuilder("Отчёт")
+        table.add_line((
+            'Дата начала',
+            report.created_at.replace(tzinfo=ZoneInfo(settings.TIME_ZONE)).strftime('%d.%m.%Y %H:%M')
+        ))
+        table.add_line((
+            'Дата окончания',
+            report.updated_at.replace(tzinfo=ZoneInfo(settings.TIME_ZONE)).strftime('%d.%m.%Y %H:%M')
+        ))
+        table.add_line(('Адрес', report.location.address.name))
+        table.add_line(('Помещение', report.location.name))
+        table.add_line([])
+        table.add_line(('Наименование', "На учете", "Отсканировано"))
+        items = defaultdict(lambda: dict(count=0, scanned=0))
+
+        # Количество оборудования на учете
+        instances = models.ReportItem.objects.filter(report_id=pk).values_list("instance_id", flat=True)
+        queryset1 = models.Instance.objects.select_related("object").order_by("object").filter(
+            id__in=instances).values(name=F("object__name")).annotate(count=Count("*"))
+        for _object in queryset1:
+            items[_object["name"]]["count"] = _object["count"]
+
+        # Отсканированное оборудование
+        scanned_instances = models.ReportScannedItem.objects.filter(report_id=pk).values_list("instance_id", flat=True)
+        scanned_unknown_instances = scanned_instances.exclude(instance_id__in=instances).values_list("instance_id",
+                                                                                                     flat=True)
+        queryset2 = models.Instance.objects.select_related("object").filter(
+            id__in=scanned_instances
+        ).exclude(
+            id__in=scanned_unknown_instances
+        ).order_by(
+            "object"
+        ).values(name=F('object__name')).annotate(scanned=Count('*'))
+        for _object in queryset2:
+            items[_object["name"]]["scanned"] = _object["scanned"]
+
+        if scanned_unknown_instances:
+            items["Не соответствующее месту нахождения"] = {
+                "count": "",
+                "scanned": len(scanned_unknown_instances)
+            }
+
+        for key in items:
+            table.add_line([key, *items[key].values()])
+
+        table.set_page("Оборудование")
+        table.add_line(["Отсканированное оборудование"])
+        table.add_line(["Наименование", "Инвентарные номера"])
+        items = defaultdict(list)
+        for key, number in models.Instance.objects.filter(
+                id__in=scanned_instances
+            ).exclude(
+                id__in=scanned_unknown_instances
+        ).values_list("object__name", "inventory_number"):
+            items[key].append(number)
+
+        for key, number in models.Instance.objects.filter(
+                id__in=scanned_unknown_instances
+        ).values_list("object__name", "inventory_number"):
+            items[f"{key}-unknown"].append(number)
+
+        for key in items:
+            if "-unknown" in key:
+                table.add_line([])
+                table.add_line(["Не соответствующее месту нахождения"])
+                table.add_line(["Наименование", "Инвентарные номера"])
+            table.add_line([key.replace("-unknown", ""), "\r\n".join(items[key])], [2])
+
+        table.write(response)
+        return response
+
     @action(detail=True, methods=["GET"], url_path="item/scanned")
     def scanned(self, request: Request, pk=None):
         try:
@@ -134,7 +222,8 @@ class ReportView(DualSerializerViewSet):
 
         instances = models.ReportItem.objects.filter(report_id=pk).values_list("instance_id", flat=True)
         scanned_instances = models.ReportScannedItem.objects.filter(report_id=pk).values_list("instance_id", flat=True)
-        scanned_unknown_instances = scanned_instances.exclude(instance_id__in=instances).values_list("instance_id", flat=True)
+        scanned_unknown_instances = scanned_instances.exclude(instance_id__in=instances).values_list("instance_id",
+                                                                                                     flat=True)
 
         queryset = models.Instance.objects.select_related("object").filter(
             id__in=scanned_instances
