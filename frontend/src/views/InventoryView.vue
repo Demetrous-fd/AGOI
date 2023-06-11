@@ -119,7 +119,7 @@ export default defineComponent({
     getReport(this.reportId).then(
         response => {
           if (response.data.status === 'finish')
-            this.$router.push({name: 'home'})
+            this.$router.push({name: 'report', params: {reportId: this.reportId}})
         }
     ).catch(e => e)
 
