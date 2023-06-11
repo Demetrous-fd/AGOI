@@ -44,7 +44,9 @@ export async function finishReport(reportId) {
 
 export async function listenReportEvent(callback) {
     let backend = import.meta.env.VITE_API_URL.split("//")[1]
-    let socket = new WebSocket(`ws://${backend}/ws/`);
+    let socket = new WebSocket(
+        `${location.protocol !== 'https:'? 'ws' : 'wss'}://${backend}/ws/`
+    )
     socket.onmessage = callback
 }
 
