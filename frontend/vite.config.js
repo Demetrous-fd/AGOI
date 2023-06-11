@@ -39,7 +39,8 @@ export default defineConfig({
                 ]
             },
             workbox: {
-                navigateFallbackDenylist: [/^\/admin.*/, /^\/api.*/, /^\/autocomplete.*/, /^\/ws.*/, /^\/statis.*/]
+                navigateFallbackDenylist: [/^\/admin.*/, /^\/api.*/, /^\/autocomplete.*/, /^\/ws.*/, /^\/statis.*/],
+                cleanupOutdatedCaches: true,
             }
         })
     ],
