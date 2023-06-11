@@ -145,7 +145,7 @@ export default {
       )
     },
     download(id){
-      const reportCreatedAt = (new Date(this.report.created_at)).toLocaleString().slice(0, 10)
+      const reportCreatedAt = (new Date(this.report.created_at)).toLocaleString().replace(",", "")
       downloadReport(id, `${this.report.location.name} ${reportCreatedAt}`)
     }
   }
