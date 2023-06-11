@@ -5,13 +5,6 @@ FROM python:3.10-slim-buster
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Create and set work directory called `app`
-RUN mkdir -p /app
-WORKDIR /app
-
-# Copy local project
-COPY . /app/
-
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
     set -ex && \
@@ -43,6 +36,13 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN set -ex && \
     pip install --user pipenv && \
     rm -rf /root/.cache/
+
+# Create and set work directory called `app`
+RUN mkdir -p /app
+WORKDIR /app
+
+# Copy local project
+COPY . /app/
 
 RUN PIPENV_VENV_IN_PROJECT=1 /root/.local/bin/pipenv install
 # Expose port 8000
