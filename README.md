@@ -100,3 +100,7 @@ sudo nginx -t
 ```shell
 sudo nginx -s reload
 ```
+13. Приложение готово к работе, перейдите по адресу указанному в конфиге Nginx и пройдите авторизацию
+![image](https://github.com/Demetrous-fd/AGOI/assets/63101072/42d3fc0b-526b-4e19-8150-8d60a19f9b22)
+![image](https://github.com/Demetrous-fd/AGOI/assets/63101072/523fc967-bd06-4799-8e94-148b03fac7f0)
+
